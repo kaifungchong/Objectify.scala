@@ -2,7 +2,7 @@ package org.objectify
 
 import org.objectify.policies.Policy
 
-case class Defaults {
+case class Defaults() {
 
     var policies: List[Class[Policy]] = Nil
 

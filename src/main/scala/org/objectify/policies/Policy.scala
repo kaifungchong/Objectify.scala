@@ -1,5 +1,5 @@
 package org.objectify.policies
 
-abstract trait Policy {
+trait Policy {
     def isAllowed
 }

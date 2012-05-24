@@ -24,5 +24,5 @@ object Test extends App {
 
     objectify.actions resource("pictures", index = Some(Action(GET, "index", policies = Some(List(classOf[Policy])), service = Some(classOf[Service]), responder = Some(classOf[Responder]))))
 
-    println(objectify.toString);
+    println(objectify.toString)
 }

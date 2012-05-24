@@ -54,12 +54,12 @@ case class Action(verb: Verb,
     }
 }
 
-case class Actions {
+case class Actions() {
 
     var actions: Map[Verb, Map[String, Action]] = Verb.values.map(_ -> Map[String, Action]()).toMap
 
     /**
-      * Default routing confiuration point assumes to create an
+      * Default routing configuration point assumes to create an
       * policy free (public) set of routes that map to the
       * following services
       *
