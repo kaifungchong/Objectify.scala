@@ -1,3 +1,5 @@
 package org.objectify.responders
 
-trait Responder
+trait Responder {
+  def apply()
+}

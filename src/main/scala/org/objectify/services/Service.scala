@@ -1,3 +1,5 @@
 package org.objectify.services
 
-trait Service
+trait Service {
+  def apply()
+}
