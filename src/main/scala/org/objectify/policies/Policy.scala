@@ -5,5 +5,5 @@ import org.objectify.responders.Responder
 trait Policy {
   def isAllowed:Boolean
 
-  def getResponder:Responder
+  def getResponder:Class[_ <:Responder]
 }

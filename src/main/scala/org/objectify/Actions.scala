@@ -3,6 +3,7 @@ package org.objectify
 import org.objectify.policies.Policy
 import org.objectify.services.Service
 import mojolly.inflector.InflectorImports._
+import resolvers.ClassResolver
 import responders.Responder
 
 object Verb extends Enumeration {
@@ -19,18 +20,18 @@ import Verb._
 case class Action(verb: Verb,
                   var name: String,
                   var route: Option[String] = None,
-                  policies: Option[List[Class[Policy]]] = None,
-                  service: Option[Class[Service]] = None,
-                  responder: Option[Class[Responder]] = None) {
+                  policies: Option[List[Class[_ <: Policy]]] = None,
+                  service: Option[Class[_ <: Service]] = None,
+                  responder: Option[Class[_ <: Responder]] = None) {
 
   // conditionally set the route
   def setRouteIfNone(newRoute: String) = {
     if (route.isEmpty) {
-      route = Some(newRoute);
+      route = Some(newRoute)
     }
   }
 
-  def resolvePolicies: List[Class[Policy]] = {
+  def resolvePolicies: List[Class[_ <: Policy]] = {
     policies.getOrElse(Nil)
   }
 
@@ -42,21 +43,19 @@ case class Action(verb: Verb,
    * eg: pictures index => PicturesIndexService
    * @return
    */
-  def resolveServiceClass: Class[Service] = {
-    //service.getOrElse(ClassResolver.resolveServiceClass(getSerivceClassName(name)))
-    service.getOrElse(classOf[Service])
+  def resolveServiceClass: Class[_ <: Service] = {
+    service.getOrElse(ClassResolver.resolveServiceClass(getSerivceClassName(name)))
   }
 
-  def resolveResponderClass: Class[Responder] = {
-    //responder.getOrElse(ClassResolver.resolveResponderClass(getResponderClassName(name)))
-    responder.getOrElse(classOf[Responder])
+  def resolveResponderClass: Class[_ <: Responder] = {
+    responder.getOrElse(ClassResolver.resolveResponderClass(getResponderClassName(name)))
   }
 
-  private def getSerivceClassName(name:String) = {
+  private def getSerivceClassName(name: String) = {
     name + "Service"
   }
 
-  private def getResponderClassName(name:String) = {
+  private def getResponderClassName(name: String) = {
     name + "Responder"
   }
 
@@ -73,12 +72,21 @@ case class Action(verb: Verb,
     stringBuilder.append(")")
     stringBuilder.toString
   }
+
+  override def equals(other: Any):Boolean = {
+    if ( !other.isInstanceOf[Action]) {
+      return false
+    }
+    val otherAction = other.asInstanceOf[Action]
+    this.verb == otherAction.verb && this.name.equals(otherAction.name)
+  }
+
+  override def hashCode() = verb.hashCode() + name.hashCode
 }
 
 case class Actions() {
 
-    var actions: Map[Verb, Map[String, Action]] = Verb.values.map(_ -> Map[String, Action]()).toMap
-    var routeRegistry = Map[String, Action]()
+  var actions: Map[Verb, Map[String, Action]] = Verb.values.map(_ -> Map[String, Action]()).toMap
 
   /**
    * Default routing configuration point assumes to create an
@@ -121,7 +129,6 @@ case class Actions() {
       a.name = namePrefix.capitalize + a.name.capitalize
       a.setRouteIfNone(route)
       action(a)
-      routeRegistry += route -> a
     })
   }
 

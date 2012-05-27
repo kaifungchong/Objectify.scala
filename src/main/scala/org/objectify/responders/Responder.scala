@@ -1,5 +1,5 @@
 package org.objectify.responders
 
 trait Responder {
-  def apply()
+  def apply():String
 }

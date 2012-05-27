@@ -3,9 +3,16 @@ package org.objectify.executor
 import org.scalatest.{BeforeAndAfterEach, WordSpec}
 import org.objectify.{Action, Objectify}
 import org.objectify.services.Service
-import org.objectify.responders.Responder
 import org.objectify.Verb.{DELETE, PUT, POST, GET}
-import org.objectify.policies.{GoodPolicy, Policy}
+import org.objectify.policies.{BadPolicy, GoodPolicy, Policy}
+import org.scalatest.mock.MockitoSugar
+import org.mockito.Mockito._
+import org.mockito.Matchers._
+import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
+import java.io.PrintWriter
+import org.mockito.stubbing.Answer
+import org.mockito.invocation.InvocationOnMock
+import org.objectify.responders.{BadPolicyResponder, Responder}
 
 /**
  * Testing the pipeline and sub-methods
@@ -13,7 +20,7 @@ import org.objectify.policies.{GoodPolicy, Policy}
  * @author Arthur Gonigberg
  * @since 12-05-25
  */
-class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach {
+class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with MockitoSugar {
   val objectify = Objectify()
   val op = new ObjectifyPipeline(objectify)
 
@@ -22,7 +29,7 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach {
 
     objectify.actions resource("pictures",
       index = Some(Action(GET, "index",
-        policies = Some(List(Class[GoodPolicy])),
+        policies = Some(List(classOf[GoodPolicy], classOf[BadPolicy])),
         service = Some(classOf[Service]),
         responder = Some(classOf[Responder]))
       ))
@@ -56,6 +63,35 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach {
     "return the correct action for delete" in {
       val route = op.matchUrlToRoute("/pictures/12", objectify.actions.actions(DELETE))
       assert(route.equals(objectify.actions.actions(DELETE).get("pictures/:id")))
+    }
+  }
+
+  "The handle method" should {
+    "execute policies" in {
+      val req = mock[HttpServletRequest]
+      val res = mock[HttpServletResponse]
+
+      when(req.getMethod).thenReturn("GET")
+      when(req.getContextPath).thenReturn("/pictures")
+      when(req.getServletPath).thenReturn("")
+      when(req.getPathInfo).thenReturn("")
+
+      // mock out the response writer
+      val writer = mock[PrintWriter]
+      var output = ""
+      when(res.getWriter).thenReturn(writer)
+      doAnswer(new Answer[Unit]() {
+        def answer(p: InvocationOnMock) {
+          output = p.getArguments.apply(0).asInstanceOf[String]
+        }
+      }).when(writer).println(anyString())
+
+      // do the method call
+      op.handleRequest(req, res)
+
+      // verify it worked
+      assert(output.equals(new BadPolicyResponder()()))
+      verify(writer).println(anyString())
     }
   }
 }
