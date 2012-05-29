@@ -1,6 +1,5 @@
 package org.objectify.policies
 
-import org.objectify.responders.BadPolicyResponder
 
 /**
  * Sample policy
@@ -10,6 +9,4 @@ import org.objectify.responders.BadPolicyResponder
  */
 class BadPolicy extends Policy {
   def isAllowed = false
-
-  def getResponder = classOf[BadPolicyResponder]
 }

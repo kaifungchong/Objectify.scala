@@ -1,6 +1,5 @@
 package org.objectify.policies
 
-import org.objectify.responders.BadPolicyResponder
 
 /**
  * Sample policy
@@ -14,6 +13,4 @@ class AuthenticationPolicy extends Policy {
   def isAllowed = {
     callCurrentUser != null
   }
-
-  def getResponder = classOf[BadPolicyResponder]
 }

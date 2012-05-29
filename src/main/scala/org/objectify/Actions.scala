@@ -20,7 +20,7 @@ import Verb._
 case class Action(verb: Verb,
                   var name: String,
                   var route: Option[String] = None,
-                  policies: Option[List[Class[_ <: Policy]]] = None,
+                  policies: Option[Map[Class[_ <: Policy], Class[_ <: Responder]]] = None,
                   service: Option[Class[_ <: Service]] = None,
                   responder: Option[Class[_ <: Responder]] = None) {
 
@@ -31,8 +31,8 @@ case class Action(verb: Verb,
     }
   }
 
-  def resolvePolicies: List[Class[_ <: Policy]] = {
-    policies.getOrElse(Nil)
+  def resolvePolicies: Map[Class[_ <: Policy],Class[_ <: Responder]] = {
+    policies.getOrElse(Map())
   }
 
 

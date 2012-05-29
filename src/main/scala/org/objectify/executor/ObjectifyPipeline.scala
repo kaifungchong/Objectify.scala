@@ -26,12 +26,14 @@ class ObjectifyPipeline(objectify: Objectify) {
       .getOrElse(throw new IllegalArgumentException("Could not determine the route to use"))
 
     // execute policies
-    val policies = instantiate[Policy](actionResource.resolvePolicies, req)
-    val policyResponder = (for {policy <- policies if !policy.isAllowed} yield policy.getResponder).headOption
+    val policyResponders =
+      for {(policy, responder) <- actionResource.resolvePolicies
+           if (!instantiate[Policy](policy, req).isAllowed)}
+      yield responder
 
     // if policies failed respond with first failure
-    if (policyResponder.isDefined) {
-      populateResponse(instantiate[Responder](policyResponder.get, req), resp)
+    if (!policyResponders.isEmpty) {
+      populateResponse(instantiate[Responder](policyResponders.head, req), resp)
     }
     // else execute the service call
     else {

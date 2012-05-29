@@ -8,6 +8,4 @@ package org.objectify.policies
  */
 class GoodPolicy extends Policy {
   def isAllowed = true
-
-  def getResponder = null
 }

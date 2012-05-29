@@ -1,7 +1,6 @@
 package org.objectify.executor
 
 import org.scalatest.{BeforeAndAfterEach, WordSpec}
-import org.objectify.{Action, Objectify}
 import org.objectify.services.Service
 import org.objectify.Verb.{DELETE, PUT, POST, GET}
 import org.scalatest.mock.MockitoSugar
@@ -13,6 +12,7 @@ import org.mockito.stubbing.Answer
 import org.mockito.invocation.InvocationOnMock
 import org.objectify.responders.{BadPolicyResponder, Responder}
 import org.objectify.policies.{AuthenticationPolicy, BadPolicy, GoodPolicy, Policy}
+import org.objectify.{ObjectifySugar, Action, Objectify}
 
 /**
  * Testing the pipeline and sub-methods
@@ -20,7 +20,7 @@ import org.objectify.policies.{AuthenticationPolicy, BadPolicy, GoodPolicy, Poli
  * @author Arthur Gonigberg
  * @since 12-05-25
  */
-class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with MockitoSugar {
+class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar {
   val objectify = Objectify()
   val pipeline = new ObjectifyPipeline(objectify)
 
@@ -30,13 +30,16 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
   var output = ""
 
   override protected def beforeEach() {
-    objectify.defaults policy classOf[Policy]
+    objectify.defaults policy ~:[Policy]
 
     objectify.actions resource("pictures",
       index = Some(Action(GET, "index",
-        policies = Some(List(classOf[GoodPolicy], classOf[BadPolicy])),
-        service = Some(classOf[Service]),
-        responder = Some(classOf[Responder]))
+        policies = Some(Map(
+          ~:[GoodPolicy] -> ~:[BadPolicyResponder],
+          ~:[BadPolicy] -> ~:[BadPolicyResponder])
+        ),
+        service = Some(~:[Service]),
+        responder = Some(~:[Responder]))
       ))
 
     // mock HTTP request methods
@@ -100,7 +103,10 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
     "execute policies pass with resolver" in {
       objectify.actions resource("pictures",
         index = Some(Action(GET, "index",
-          policies = Some(List(classOf[GoodPolicy], classOf[AuthenticationPolicy])),
+          policies = Some(Map(
+            ~:[GoodPolicy] -> ~:[BadPolicyResponder],
+            ~:[AuthenticationPolicy] -> ~:[BadPolicyResponder])
+          ),
           service = Some(classOf[Service]),
           responder = Some(classOf[Responder]))
         ))
