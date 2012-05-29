@@ -1,5 +1,7 @@
 package org.objectify.policies
 
+import javax.inject.Named
+
 
 /**
  * Sample policy
@@ -7,10 +9,8 @@ package org.objectify.policies
  * @author Arthur Gonigberg
  * @since 12-05-27
  */
-class AuthenticationPolicy extends Policy {
-  var callCurrentUser: String = null
-
+class AuthenticationPolicy(@Named("CurrentUserResolver") val user: String) extends Policy {
   def isAllowed = {
-    callCurrentUser != null
+    user != null
   }
 }
