@@ -3,7 +3,7 @@ package org.objectify.policies
 import org.objectify.responders.Responder
 
 trait Policy {
-  def isAllowed:Boolean
+  def isAllowed: Boolean
 
-  def getResponder:Class[_ <:Responder]
+  def getResponder: Class[_ <: Responder]
 }

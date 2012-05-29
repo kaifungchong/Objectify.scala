@@ -1,11 +1,11 @@
 package org.objectify.services
 
 /**
- * Arthur is KING!!
+ * Sample service
  *
  * @author Arthur Gonigberg
  * @since 12-05-24
  */
-class PictureIndexService extends Service {
+class PicturesNewService extends Service {
 
 }

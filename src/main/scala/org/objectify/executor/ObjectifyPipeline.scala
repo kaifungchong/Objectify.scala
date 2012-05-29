@@ -5,6 +5,7 @@ import org.objectify.{Action, Objectify}
 import org.scalatra.SinatraPathPatternParser
 import org.objectify.policies.Policy
 import org.objectify.responders.Responder
+import org.objectify.resolvers.ParameterResolver
 
 
 /**
@@ -24,15 +25,13 @@ class ObjectifyPipeline(objectify: Objectify) {
     val actionResource = matchUrlToRoute(req.getContextPath + req.getServletPath + req.getPathInfo, routes)
       .getOrElse(throw new IllegalArgumentException("Could not determine the route to use"))
 
-    // todo figure out paramter resolver here
     // execute policies
-    val policies = Invoker[Policy]().invoke(actionResource.resolvePolicies)
-    val policyResponder: Option[Class[_ <: Responder]] =
-      (for {policy <- policies if !policy.isAllowed} yield policy.getResponder).headOption
+    val policies = instantiate[Policy](actionResource.resolvePolicies, req)
+    val policyResponder = (for {policy <- policies if !policy.isAllowed} yield policy.getResponder).headOption
 
     // if policies failed respond with first failure
     if (policyResponder.isDefined) {
-      populateResponse(Invoker[Responder]().invoke(policyResponder.get), resp)
+      populateResponse(instantiate[Responder](policyResponder.get, req), resp)
     }
     // else execute the service call
     else {
@@ -41,9 +40,24 @@ class ObjectifyPipeline(objectify: Objectify) {
 
   }
 
+  private[executor] def instantiate[T: ClassManifest](klass: Class[_ <: T], req: HttpServletRequest) = {
+    val instance = Invoker[T]().invoke(klass)
+    ParameterResolver.populateParametersWithResolver[T, HttpServletRequest](instance, req)
+
+    instance
+  }
+
+  private[executor] def instantiate[T: ClassManifest](klasses: List[Class[_ <: T]], req: HttpServletRequest) = {
+    val instances = Invoker[T]().invoke(klasses)
+    instances.foreach(
+      instance => ParameterResolver.populateParametersWithResolver[T, HttpServletRequest](instance, req)
+    )
+
+    instances
+  }
+
   private[executor] def populateResponse(responder: Responder, response: HttpServletResponse) {
-    // todo serialization plugins
-    response.getWriter.println(responder())
+    response.getWriter.println(responder(None))
   }
 
   private[executor] def matchUrlToRoute(path: String, actionMap: Map[String, Action]): Option[Action] = {

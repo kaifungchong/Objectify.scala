@@ -40,7 +40,7 @@ case class Action(verb: Verb,
    * Resolves the service class by either returning the preset service class
    * or find the class based on the name of this action
    *
-   * eg: pictures index => PicturesIndexService
+   * eg: pictures index => PicturesDeleteService
    * @return
    */
   def resolveServiceClass: Class[_ <: Service] = {
@@ -73,8 +73,8 @@ case class Action(verb: Verb,
     stringBuilder.toString
   }
 
-  override def equals(other: Any):Boolean = {
-    if ( !other.isInstanceOf[Action]) {
+  override def equals(other: Any): Boolean = {
+    if (!other.isInstanceOf[Action]) {
       return false
     }
     val otherAction = other.asInstanceOf[Action]
@@ -122,6 +122,8 @@ case class Actions() {
     setRouteAndNameAndAdd(edit, route, route + "/:id/edit")
     setRouteAndNameAndAdd(update, route, route + "/:id")
     setRouteAndNameAndAdd(destroy, route, route + "/:id")
+
+    bootStrapValidation()
   }
 
   private def setRouteAndNameAndAdd(actionOption: Option[Action], namePrefix: String, route: String) {
@@ -137,6 +139,15 @@ case class Actions() {
     map += (action.route.get -> action)
     actions += (action.verb -> map)
     action
+  }
+
+  def bootStrapValidation() {
+    for {(verb, actionsEntry) <- actions
+         (string, action) <- actionsEntry} {
+      action.resolvePolicies
+      action.resolveServiceClass
+      action.resolveResponderClass
+    }
   }
 
   //    // http verbs for configruration

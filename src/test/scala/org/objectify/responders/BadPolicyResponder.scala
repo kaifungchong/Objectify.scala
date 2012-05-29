@@ -1,5 +1,7 @@
 package org.objectify.responders
 
+import org.objectify.services.Service
+
 /**
  * Sample responder
  *
@@ -7,7 +9,7 @@ package org.objectify.responders
  * @since 12-05-25
  */
 class BadPolicyResponder extends Responder {
-  override def apply():String = {
+  override def apply(service: Option[_ <: Service]):String = {
     "Sweet"
   }
 }
