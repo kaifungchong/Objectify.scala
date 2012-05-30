@@ -12,7 +12,7 @@ import org.objectify.resolvers.{ ClassResolver, Resolver }
   * @since 12-05-29
   */
 private[executor] object Injector {
-    
+
     /**
       * Create a list of parameters that have been resolved, assuming they all require the given parameter
       *

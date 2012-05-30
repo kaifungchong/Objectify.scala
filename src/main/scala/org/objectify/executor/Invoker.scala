@@ -29,7 +29,7 @@ private[executor] object Invoker {
     val constructor = clazz.getConstructors.head
     val injectedValues = Injector.getInjectedResolverParams(constructor, resolverParam)
 
-    if (!injectedValues.isEmpty) {
+    if (injectedValues.nonEmpty) {
       // convert list to var args
       constructor.newInstance(injectedValues.map{_.asInstanceOf[AnyRef]}:_*).asInstanceOf[T]
     }
