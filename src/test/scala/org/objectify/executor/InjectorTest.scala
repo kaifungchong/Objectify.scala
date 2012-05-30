@@ -1,18 +1,19 @@
 package org.objectify.executor
 
-import org.objectify.ObjectifySugar
-import org.scalatest.mock.MockitoSugar
-import org.scalatest.{WordSpec, BeforeAndAfterEach}
+import org.junit.runner.RunWith
 import org.objectify.policies.Policy
-import javax.servlet.http.HttpServletRequest
+import org.objectify.resolvers.CurrentUserResolver
+import org.objectify.resolvers.StringResolver
+import org.objectify.ObjectifySugar
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.mock.MockitoSugar
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.WordSpec
+
 import javax.inject.Named
-import org.objectify.resolvers.{CurrentUserResolver, StringResolver}
-/**
- * Testing the injector
- *
- * @author Arthur Gonigberg
- * @since 12-05-29
- */
+import javax.servlet.http.HttpServletRequest
+
+@RunWith(classOf[JUnitRunner])
 class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar {
   val stringResolverActual = new StringResolver().apply(null)
   val currentUserResolverActual = new CurrentUserResolver().apply(null)
