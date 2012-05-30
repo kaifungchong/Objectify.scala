@@ -29,22 +29,20 @@ private[executor] object Injector {
         // if annotated, easy to find resolver
         if (paramAnnotation.isDefined && paramAnnotation.get.isInstanceOf[Named]) {
           val namedAnno = paramAnnotation.get.asInstanceOf[Named]
-          val resolver: Class[Resolver[_, P]] =
-            ClassResolver.resolveResolverClass(
-              namedAnno.value(),
-              paramType,
-              classManifest[P].erasure.asInstanceOf[Class[P]]
-            )
+          val resolver: Class[Resolver[_, P]] = ClassResolver.resolveResolverClass(
+            namedAnno.value(),
+            paramType,
+            classManifest[P].erasure.asInstanceOf[Class[P]]
+          )
           constructorValues += resolver.newInstance()(resolverParam)
         }
         // if not, try to load resolver based on type
         else {
-          val resolver: Class[Resolver[_, P]] =
-            ClassResolver.resolveResolverClass(
-              specifyName(paramType),
-              paramType,
-              classManifest[P].erasure.asInstanceOf[Class[P]]
-            )
+          val resolver: Class[Resolver[_, P]] = ClassResolver.resolveResolverClass(
+            specifyName(paramType),
+            paramType,
+            classManifest[P].erasure.asInstanceOf[Class[P]]
+          )
           constructorValues += resolver.newInstance()(resolverParam)
         }
     }
