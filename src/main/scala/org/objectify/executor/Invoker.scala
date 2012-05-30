@@ -1,5 +1,4 @@
 package org.objectify.executor
-
 import collection.mutable.ListBuffer
 
 /**
@@ -18,7 +17,6 @@ private[executor] case class Invoker[T]() {
     classes.foreach(klass => {
       instances += klass.newInstance()
     })
-
     instances.toList
   }
 }
