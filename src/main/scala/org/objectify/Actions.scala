@@ -6,18 +6,18 @@ import mojolly.inflector.InflectorImports._
 import resolvers.ClassResolver
 import responders.Responder
 
-object Verb extends Enumeration {
-    type Verb = Value
-    val HEAD, GET, POST, PUT, DELETE, TRACE, OPTIONS, CONNECT, PATCH = Value
+object HttpMethod extends Enumeration {
+    type HttpMethod = Value
+    val Head, Get, Post, Put, Delete, Trace, Options, Connect, Patch = Value
 }
 
-import Verb._
+import HttpMethod._
 
 /**
   * An Objectify Action is a mapping of an HTTP Verb + URL pattern to a
   * set of policies a service and a responder
   */
-case class Action(verb: Verb,
+case class Action(method: HttpMethod,
                   var name: String,
                   var route: Option[String] = None,
                   policies: Option[Map[Class[_ <: Policy], Class[_ <: Responder]]] = None,
@@ -61,7 +61,7 @@ case class Action(verb: Verb,
     override def toString = {
         val stringBuilder = new StringBuilder()
         stringBuilder.append("Actions(")
-        stringBuilder.append(verb)
+        stringBuilder.append(method)
         stringBuilder.append(',')
         stringBuilder.append(name)
         stringBuilder.append(',')
@@ -77,15 +77,15 @@ case class Action(verb: Verb,
             return false
         }
         val otherAction = other.asInstanceOf[Action]
-        this.verb == otherAction.verb && this.name.equals(otherAction.name)
+        this.method == otherAction.method && this.name.equals(otherAction.name)
     }
 
-    override def hashCode() = verb.hashCode() + name.hashCode
+    override def hashCode() = method.hashCode() + name.hashCode
 }
 
-case class Actions() {
+case class Actions() extends Iterable[Action] {
 
-    var actions: Map[Verb, Map[String, Action]] = Verb.values.map(_ -> Map[String, Action]()).toMap
+    var actions: Map[HttpMethod, Map[String, Action]] = HttpMethod.values.map(_ -> Map[String, Action]()).toMap
 
     /**
       * Default routing configuration point assumes to create an
@@ -102,30 +102,28 @@ case class Actions() {
       */
 
     def resource(name: String,
-                 index: Option[Action] = Some(Action(GET, "index")),
-                 show: Option[Action] = Some(Action(GET, "show")),
-                 `new`: Option[Action] = Some(Action(GET, "new")),
-                 create: Option[Action] = Some(Action(POST, "create")),
-                 edit: Option[Action] = Some(Action(GET, "edit")),
-                 update: Option[Action] = Some(Action(PUT, "update")),
-                 destroy: Option[Action] = Some(Action(DELETE, "destroy"))) {
+                 index: Option[Action] = Some(Action(Get, "index")),
+                 show: Option[Action] = Some(Action(Get, "show")),
+                 `new`: Option[Action] = Some(Action(Get, "new")),
+                 create: Option[Action] = Some(Action(Post, "create")),
+                 edit: Option[Action] = Some(Action(Get, "edit")),
+                 update: Option[Action] = Some(Action(Put, "update")),
+                 destroy: Option[Action] = Some(Action(Delete, "destroy"))) {
 
         // update the routes if they haven't been set
         val route = name.pluralize
 
         // Ensure that all the actions have resty routes.
-        setRouteAndNameAndAdd(index, route, route)
-        setRouteAndNameAndAdd(show, route, route + "/:id")
-        setRouteAndNameAndAdd(`new`, route, route + "/new")
-        setRouteAndNameAndAdd(create, route, route)
-        setRouteAndNameAndAdd(edit, route, route + "/:id/edit")
-        setRouteAndNameAndAdd(update, route, route + "/:id")
-        setRouteAndNameAndAdd(destroy, route, route + "/:id")
-
-        bootStrapValidation()
+        resolveRouteAndName(index, route, route)
+        resolveRouteAndName(show, route, route + "/:id")
+        resolveRouteAndName(`new`, route, route + "/new")
+        resolveRouteAndName(create, route, route)
+        resolveRouteAndName(edit, route, route + "/:id/edit")
+        resolveRouteAndName(update, route, route + "/:id")
+        resolveRouteAndName(destroy, route, route + "/:id")
     }
 
-    private def setRouteAndNameAndAdd(actionOption: Option[Action], namePrefix: String, route: String) {
+    private def resolveRouteAndName(actionOption: Option[Action], namePrefix: String, route: String) {
         actionOption.map(a => {
             a.name = namePrefix.capitalize + a.name.capitalize
             a.setRouteIfNone(route)
@@ -134,13 +132,17 @@ case class Actions() {
     }
 
     def action(action: Action) {
-        var map = actions(action.verb)
+        var map = actions(action.method)
         map += (action.route.get -> action)
-        actions += (action.verb -> map)
+        actions += (action.method -> map)
         action
     }
 
-    def bootStrapValidation() {
+    override def iterator = {
+        actions.values.flatMap(_.values).iterator
+    }
+
+    def bootstrapValidation() {
         for {
             (verb, actionsEntry) <- actions
             (string, action) <- actionsEntry

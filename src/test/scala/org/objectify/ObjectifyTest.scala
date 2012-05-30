@@ -9,6 +9,6 @@ import org.scalatest.WordSpec
   * @since 12-05-24
   */
 class ObjectifyTest extends WordSpec {
-    // todo
+    // TODO some tests for this thing
 }
 
