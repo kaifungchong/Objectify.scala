@@ -7,7 +7,6 @@ import org.objectify.policies.Policy
 import javax.servlet.http.HttpServletRequest
 import javax.inject.Named
 import org.objectify.resolvers.{CurrentUserResolver, StringResolver}
-
 /**
  * Testing the injector
  *
