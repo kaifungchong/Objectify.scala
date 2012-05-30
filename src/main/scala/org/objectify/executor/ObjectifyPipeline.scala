@@ -1,11 +1,10 @@
 package org.objectify.executor
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
-import org.objectify.{Action, Objectify}
 import org.scalatra.SinatraPathPatternParser
 import org.objectify.policies.Policy
 import org.objectify.responders.Responder
-import org.objectify.resolvers.ParameterResolver
+import org.objectify.{Action, Objectify}
 
 
 /**
@@ -42,20 +41,8 @@ class ObjectifyPipeline(objectify: Objectify) {
 
   }
 
-  private[executor] def instantiate[T: ClassManifest](klass: Class[_ <: T], req: HttpServletRequest) = {
-    val instance = Invoker[T]().invoke(klass)
-    ParameterResolver.populateParametersWithResolver[T, HttpServletRequest](instance, req)
-
-    instance
-  }
-
-  private[executor] def instantiate[T: ClassManifest](klasses: List[Class[_ <: T]], req: HttpServletRequest) = {
-    val instances = Invoker[T]().invoke(klasses)
-    instances.foreach(
-      instance => ParameterResolver.populateParametersWithResolver[T, HttpServletRequest](instance, req)
-    )
-
-    instances
+  private def instantiate[T: ClassManifest](klass: Class[_ <: T], req: HttpServletRequest) = {
+    Invoker.invoke(klass, req)
   }
 
   private[executor] def populateResponse(responder: Responder, response: HttpServletResponse) {
