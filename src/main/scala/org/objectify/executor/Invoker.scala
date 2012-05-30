@@ -43,4 +43,3 @@ private[executor] object Invoker {
     klass.newInstance()
   }
 }
-
