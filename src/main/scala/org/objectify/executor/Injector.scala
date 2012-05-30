@@ -13,7 +13,7 @@ import org.objectify.resolvers.{ClassResolver, Resolver}
  */
 private[executor] object Injector {
   /**
-   * Create a list of parameters that have been resolved, assuming they all require the given parameter
+   * Create a list of parameters that have been resolved, assuming all the resolvers require the given parameter.
    *
    * @param constructor - the constructor to inject
    * @param resolverParam - the parameter value to resolve with

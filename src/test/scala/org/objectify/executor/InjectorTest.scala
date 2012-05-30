@@ -15,35 +15,38 @@ import org.objectify.resolvers.{CurrentUserResolver, StringResolver}
  * @since 12-05-29
  */
 class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar {
+  val stringResolverActual = new StringResolver().apply(null)
+  val currentUserResolverActual = new CurrentUserResolver().apply(null)
+
   "Injector" should {
     "resolve type" in {
       assert(Injector.getInjectedResolverParams(manifest[TestPolicy1].erasure.getConstructors.head, mock[HttpServletRequest])
-        .asInstanceOf[List[String]].head.equalsIgnoreCase(new StringResolver().apply(null)))
+        .asInstanceOf[List[String]].head.equalsIgnoreCase(stringResolverActual))
     }
     "resolve annotation" in {
       assert(Injector.getInjectedResolverParams(manifest[TestPolicy2].erasure.getConstructors.head, mock[HttpServletRequest])
-        .asInstanceOf[List[String]].head.equalsIgnoreCase(new CurrentUserResolver().apply(null)))
+        .asInstanceOf[List[String]].head.equalsIgnoreCase(currentUserResolverActual))
     }
     "resolve type and annotation" in {
       assert(Injector.getInjectedResolverParams(manifest[TestPolicy3].erasure.getConstructors.head, mock[HttpServletRequest])
-        .asInstanceOf[List[String]].equals(List(new CurrentUserResolver().apply(null), new StringResolver().apply(null))))
+        .asInstanceOf[List[String]].equals(List(currentUserResolverActual, stringResolverActual)))
     }
     "resolve annotation and type" in {
       assert(Injector.getInjectedResolverParams(manifest[TestPolicy4].erasure.getConstructors.head, mock[HttpServletRequest])
-        .asInstanceOf[List[String]].equals(List(new StringResolver().apply(null), new CurrentUserResolver().apply(null))))
+        .asInstanceOf[List[String]].equals(List(stringResolverActual, currentUserResolverActual)))
     }
     "resolve mish mash" in {
       assert(Injector.getInjectedResolverParams(manifest[TestPolicy5].erasure.getConstructors.head, mock[HttpServletRequest])
         .asInstanceOf[List[String]].equals(
         List(
-          new StringResolver().apply(null),
-          new CurrentUserResolver().apply(null),
-          new CurrentUserResolver().apply(null),
-          new StringResolver().apply(null),
-          new CurrentUserResolver().apply(null),
-          new StringResolver().apply(null),
-          new StringResolver().apply(null),
-          new CurrentUserResolver().apply(null)
+          stringResolverActual,
+          currentUserResolverActual,
+          currentUserResolverActual,
+          stringResolverActual,
+          currentUserResolverActual,
+          stringResolverActual,
+          stringResolverActual,
+          currentUserResolverActual
         )))
     }
   }
