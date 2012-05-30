@@ -9,8 +9,8 @@ import javax.inject.Named
  * @author Arthur Gonigberg
  * @since 12-05-27
  */
-class AuthenticationPolicy(@Named("CurrentUserResolver") val user: String) extends Policy {
+class AuthenticationPolicy(@Named("CurrentUserResolver") user: String, string: String) extends Policy {
   def isAllowed = {
-    user != null
+    user != null && string != null
   }
 }

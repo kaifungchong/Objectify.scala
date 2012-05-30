@@ -21,22 +21,38 @@ private[executor] object Injector {
    */
   def getInjectedResolverParams[P: ClassManifest](constructor: Constructor[_], resolverParam: P): List[Any] = {
     val constructorValues = ListBuffer[Any]()
-    for {paramType <- constructor.getParameterTypes
-         paramAnnotations <- constructor.getParameterAnnotations
-         paramAnnotation <- paramAnnotations
-         if (paramAnnotation.isInstanceOf[Named])} {
 
-      val namedAnno = paramAnnotation.asInstanceOf[Named]
-      val resolver: Class[Resolver[_, P]] =
-        ClassResolver.resolveResolverClass(
-          namedAnno.value(),
-          paramType,
-          classManifest[P].erasure.asInstanceOf[Class[P]]
-        )
-      constructorValues += resolver.newInstance()(resolverParam)
+    (constructor.getParameterTypes, constructor.getParameterAnnotations).zipped.foreach {
+      (paramType, paramAnnotations) =>
+        // assume only one annotation per parameter
+        val paramAnnotation = paramAnnotations.headOption
+        // if annotated, easy to find resolver
+        if (paramAnnotation.isDefined && paramAnnotation.get.isInstanceOf[Named]) {
+          val namedAnno = paramAnnotation.get.asInstanceOf[Named]
+          val resolver: Class[Resolver[_, P]] =
+            ClassResolver.resolveResolverClass(
+              namedAnno.value(),
+              paramType,
+              classManifest[P].erasure.asInstanceOf[Class[P]]
+            )
+          constructorValues += resolver.newInstance()(resolverParam)
+        }
+        // if not, try to load resolver based on type
+        else {
+          val resolver: Class[Resolver[_, P]] =
+            ClassResolver.resolveResolverClass(
+              specifyName(paramType),
+              paramType,
+              classManifest[P].erasure.asInstanceOf[Class[P]]
+            )
+          constructorValues += resolver.newInstance()(resolverParam)
+        }
     }
-
     constructorValues.toList
+  }
+
+  private def specifyName(clazz: Class[_]) = {
+    clazz.getSimpleName + "Resolver"
   }
 }
 
