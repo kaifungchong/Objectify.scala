@@ -4,11 +4,6 @@ import org.scalatest.{BeforeAndAfterEach, WordSpec}
 import org.scalatest.mock.MockitoSugar
 import org.objectify.HttpMethod._
 import org.mockito.Mockito._
-import org.mockito.Matchers._
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
-import java.io.PrintWriter
-import org.mockito.stubbing.Answer
-import org.mockito.invocation.InvocationOnMock
 import org.objectify.policies.{AuthenticationPolicy, BadPolicy, GoodPolicy, Policy}
 import org.objectify.{ObjectifySugar, Action, Objectify}
 import org.objectify.services.PicturesIndexService
@@ -22,10 +17,7 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
     val objectify = Objectify()
     val pipeline = new ObjectifyPipeline(objectify)
 
-    val req = mock[HttpServletRequest]
-    val res = mock[HttpServletResponse]
-    var writer = mock[PrintWriter]
-    var output = ""
+    val req = mock[ObjectifyRequest]
 
     override protected def beforeEach() {
         objectify.defaults policy ~:[Policy]
@@ -41,21 +33,8 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
             ))
 
         // mock HTTP request methods
-        when(req.getMethod).thenReturn("Get")
-        when(req.getContextPath).thenReturn("/pictures")
-        when(req.getServletPath).thenReturn("")
-        when(req.getPathInfo).thenReturn("")
-
-        // reset writer and output for testing
-        output = ""
-        writer = mock[PrintWriter]
-
-        when(res.getWriter).thenReturn(writer)
-        doAnswer(new Answer[Unit]() {
-            def answer(p: InvocationOnMock) {
-                output = p.getArguments.apply(0).toString
-            }
-        }).when(writer).println(any[Any]())
+        when(req.getHttpMethod).thenReturn(Get)
+        when(req.getPath).thenReturn("/pictures")
     }
 
     "The path mapper" should {
@@ -92,11 +71,10 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
     "The handle method" should {
         "execute policies fail" in {
             // do the method call
-            pipeline.handleRequest(req, res)
+            val response = pipeline.handleRequest(req)
 
             // verify it worked
-            assert(output.equals(new BadPolicyResponder()()))
-            verify(writer).println(any[Any]())
+            assert(response.getSerializedEntity.equals(new BadPolicyResponder()()))
         }
 
         "execute policies pass with resolver" in {
@@ -111,11 +89,10 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
                 ))
 
             // do the method call
-            pipeline.handleRequest(req, res)
+            val response = pipeline.handleRequest(req)
 
             // verify it worked
-            assert(output.equals(""))
-            verify(writer, times(0)).println(anyString())
+            assert(response.getSerializedEntity.equals(""))
         }
     }
 }

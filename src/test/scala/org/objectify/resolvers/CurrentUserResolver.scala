@@ -1,10 +1,10 @@
 package org.objectify.resolvers
 
-import javax.servlet.http.HttpServletRequest
+import org.objectify.executor.ObjectifyRequest
 
 /**
   * Sample resolver
   */
-class CurrentUserResolver extends Resolver[String, HttpServletRequest] {
-    override def apply(req: HttpServletRequest) = "jack"
+class CurrentUserResolver extends Resolver[String, ObjectifyRequest] {
+    override def apply(req: ObjectifyRequest) = "jack"
 }
