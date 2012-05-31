@@ -4,7 +4,7 @@ import org.objectify.policies.Policy
 import org.objectify.services.Service
 import mojolly.inflector.InflectorImports._
 import resolvers.ClassResolver
-import responders.Responder
+import responders.{PolicyResponder, ServiceResponder}
 
 object HttpMethod extends Enumeration {
     type HttpMethod = Value
@@ -20,9 +20,9 @@ import HttpMethod._
 case class Action(method: HttpMethod,
                   var name: String,
                   var route: Option[String] = None,
-                  policies: Option[Map[Class[_ <: Policy], Class[_ <: Responder]]] = None,
-                  service: Option[Class[_ <: Service]] = None,
-                  responder: Option[Class[_ <: Responder]] = None) {
+                  policies: Option[Map[Class[_ <: Policy], Class[_ <: PolicyResponder[_]]]] = None,
+                  service: Option[Class[_ <: Service[_]]] = None,
+                  responder: Option[Class[_ <: ServiceResponder[_,_]]] = None) {
 
     // conditionally set the route
     def setRouteIfNone(newRoute: String) = {
@@ -31,7 +31,7 @@ case class Action(method: HttpMethod,
         }
     }
 
-    def resolvePolicies: Map[Class[_ <: Policy], Class[_ <: Responder]] = {
+    def resolvePolicies: Map[Class[_ <: Policy], Class[_ <: PolicyResponder[_]]] = {
         policies.getOrElse(Map())
     }
 
@@ -42,11 +42,11 @@ case class Action(method: HttpMethod,
       * eg: pictures index => PicturesDeleteService
       * @return
       */
-    def resolveServiceClass: Class[_ <: Service] = {
+    def resolveServiceClass: Class[_ <: Service[_]] = {
         service.getOrElse(ClassResolver.resolveServiceClass(getSerivceClassName(name)))
     }
 
-    def resolveResponderClass: Class[_ <: Responder] = {
+    def resolveResponderClass: Class[_ <: ServiceResponder[_,_]] = {
         responder.getOrElse(ClassResolver.resolveResponderClass(getResponderClassName(name)))
     }
 

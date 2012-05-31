@@ -11,43 +11,43 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.WordSpec
 
 import javax.inject.Named
-import javax.servlet.http.HttpServletRequest
 
 @RunWith(classOf[JUnitRunner])
 class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar {
     val stringResolverActual = new StringResolver().apply(null)
     val currentUserResolverActual = new CurrentUserResolver().apply(null)
+    val resolverParamMock = mock[ObjectifyRequest]
 
     "Injector" should {
         "resolve type" in {
-            assert(Injector.getInjectedResolverParams(manifest[TestPolicy1].erasure.getConstructors.head, mock[HttpServletRequest])
+            assert(Injector.getInjectedResolverParams(manifest[TestPolicy1].erasure.getConstructors.head, resolverParamMock)
                 .asInstanceOf[List[String]].head.equalsIgnoreCase(stringResolverActual))
         }
         "resolve annotation" in {
-            assert(Injector.getInjectedResolverParams(manifest[TestPolicy2].erasure.getConstructors.head, mock[HttpServletRequest])
+            assert(Injector.getInjectedResolverParams(manifest[TestPolicy2].erasure.getConstructors.head, resolverParamMock)
                 .asInstanceOf[List[String]].head.equalsIgnoreCase(currentUserResolverActual))
         }
         "resolve type and annotation" in {
-            assert(Injector.getInjectedResolverParams(manifest[TestPolicy3].erasure.getConstructors.head, mock[HttpServletRequest])
+            assert(Injector.getInjectedResolverParams(manifest[TestPolicy3].erasure.getConstructors.head, resolverParamMock)
                 .asInstanceOf[List[String]].equals(List(currentUserResolverActual, stringResolverActual)))
         }
         "resolve annotation and type" in {
-            assert(Injector.getInjectedResolverParams(manifest[TestPolicy4].erasure.getConstructors.head, mock[HttpServletRequest])
+            assert(Injector.getInjectedResolverParams(manifest[TestPolicy4].erasure.getConstructors.head, resolverParamMock)
                 .asInstanceOf[List[String]].equals(List(stringResolverActual, currentUserResolverActual)))
         }
         "resolve mish mash" in {
-            assert(Injector.getInjectedResolverParams(manifest[TestPolicy5].erasure.getConstructors.head, mock[HttpServletRequest])
+            assert(Injector.getInjectedResolverParams(manifest[TestPolicy5].erasure.getConstructors.head, resolverParamMock)
                 .asInstanceOf[List[String]].equals(
-                    List(
-                        stringResolverActual,
-                        currentUserResolverActual,
-                        currentUserResolverActual,
-                        stringResolverActual,
-                        currentUserResolverActual,
-                        stringResolverActual,
-                        stringResolverActual,
-                        currentUserResolverActual
-                    )))
+                List(
+                    stringResolverActual,
+                    currentUserResolverActual,
+                    currentUserResolverActual,
+                    stringResolverActual,
+                    currentUserResolverActual,
+                    stringResolverActual,
+                    stringResolverActual,
+                    currentUserResolverActual
+                )))
         }
     }
 }

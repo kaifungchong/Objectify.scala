@@ -1,13 +1,11 @@
 package org.objectify.responders
 
-import org.objectify.services.Service
 
 /**
   * Sample Responder class
-  *
-  * @author Arthur Gonigberg
-  * @since 12-05-28
   */
-class PicturesShowResponder extends Responder {
-    def apply(service: Option[_ <: Service]) = null
+class PicturesShowResponder extends ServiceResponder[String, String] {
+    override def apply(serviceResult: String): String = {
+        serviceResult
+    }
 }
