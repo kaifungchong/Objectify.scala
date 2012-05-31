@@ -2,9 +2,6 @@ package org.objectify.executor
 
 /**
   * This class is responsible for invoking instances of classes.
-  *
-  * @author Arthur Gonigberg
-  * @since 12-05-24
   */
 private[executor] object Invoker {
 

@@ -1,7 +1,6 @@
 package org.objectify.executor
 
 import org.scalatest.{ BeforeAndAfterEach, WordSpec }
-import org.objectify.services.Service
 import org.objectify.Verb.{ DELETE, PUT, POST, GET }
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
@@ -10,15 +9,13 @@ import javax.servlet.http.{ HttpServletResponse, HttpServletRequest }
 import java.io.PrintWriter
 import org.mockito.stubbing.Answer
 import org.mockito.invocation.InvocationOnMock
-import org.objectify.responders.{ BadPolicyResponder, Responder }
 import org.objectify.policies.{ AuthenticationPolicy, BadPolicy, GoodPolicy, Policy }
 import org.objectify.{ ObjectifySugar, Action, Objectify }
+import org.objectify.services.PicturesIndexService
+import org.objectify.responders.{PicturesIndexResponder, BadPolicyResponder}
 
 /**
   * Testing the pipeline and sub-methods
-  *
-  * @author Arthur Gonigberg
-  * @since 12-05-25
   */
 class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar {
     val objectify = Objectify()
@@ -38,8 +35,8 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
                     ~:[GoodPolicy] -> ~:[BadPolicyResponder],
                     ~:[BadPolicy] -> ~:[BadPolicyResponder])
                 ),
-                service = Some(~:[Service]),
-                responder = Some(~:[Responder]))
+                service = Some(~:[PicturesIndexService]),
+                responder = Some(~:[PicturesIndexResponder]))
             ))
 
         // mock HTTP request methods
@@ -55,9 +52,9 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
         when(res.getWriter).thenReturn(writer)
         doAnswer(new Answer[Unit]() {
             def answer(p: InvocationOnMock) {
-                output = p.getArguments.apply(0).asInstanceOf[String]
+                output = p.getArguments.apply(0).toString
             }
-        }).when(writer).println(anyString())
+        }).when(writer).println(any[Any]())
     }
 
     "The path mapper" should {
@@ -97,8 +94,8 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
             pipeline.handleRequest(req, res)
 
             // verify it worked
-            assert(output.equals(new BadPolicyResponder()(None)))
-            verify(writer).println(anyString())
+            assert(output.equals(new BadPolicyResponder()()))
+            verify(writer).println(any[Any]())
         }
 
         "execute policies pass with resolver" in {
@@ -108,8 +105,8 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
                         ~:[GoodPolicy] -> ~:[BadPolicyResponder],
                         ~:[AuthenticationPolicy] -> ~:[BadPolicyResponder])
                     ),
-                    service = Some(classOf[Service]),
-                    responder = Some(classOf[Responder]))
+                    service = Some(~:[PicturesIndexService]),
+                    responder = Some(~:[PicturesIndexResponder]))
                 ))
 
             // do the method call

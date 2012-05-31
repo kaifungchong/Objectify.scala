@@ -2,10 +2,7 @@ package org.objectify.services
 
 /**
   * Sample service
-  *
-  * @author Arthur Gonigberg
-  * @since 12-05-24
   */
-class PicturesNewService extends Service {
-
+class PicturesNewService extends Service[String] {
+    def apply() = ""
 }

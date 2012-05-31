@@ -3,14 +3,12 @@ package org.objectify.executor
 import javax.servlet.http.{ HttpServletResponse, HttpServletRequest }
 import org.scalatra.SinatraPathPatternParser
 import org.objectify.policies.Policy
-import org.objectify.responders.Responder
 import org.objectify.{ Action, Objectify }
+import org.objectify.services.Service
+import org.objectify.responders.{PolicyResponder, ServiceResponder}
 
 /**
   * This class is responsible for executing the pipeline for the lifecycle of a request.
-  *
-  * @author Arthur Gonigberg
-  * @since 12-05-24
   */
 class ObjectifyPipeline(objectify: Objectify) {
 
@@ -31,22 +29,24 @@ class ObjectifyPipeline(objectify: Objectify) {
             } yield responder
 
         // if policies failed respond with first failure
-        if (!policyResponders.isEmpty) {
-            populateResponse(instantiate[Responder](policyResponders.head, req), resp)
+        if (policyResponders.nonEmpty) {
+            populateResponse(instantiate[PolicyResponder[_]](policyResponders.head, req).apply(), resp)
         }
         // else execute the service call
         else {
-            // todo do something useful here
-        }
+            val service = instantiate[Service[_]](actionResource.resolveServiceClass, req)
+            val responder = instantiate[ServiceResponder[_, _]](actionResource.resolveResponderClass, req)
 
+            populateResponse(responder.applyAny(service()), resp)
+        }
     }
 
     private def instantiate[T: ClassManifest](klass: Class[_ <: T], req: HttpServletRequest) = {
         Invoker.invoke(klass, req)
     }
 
-    private[executor] def populateResponse(responder: Responder, response: HttpServletResponse) {
-        response.getWriter.println(responder(None))
+    private def populateResponse(result: Any, response: HttpServletResponse) {
+        response.getWriter.println(result)
     }
 
     private[executor] def matchUrlToRoute(path: String, actionMap: Map[String, Action]): Option[Action] = {

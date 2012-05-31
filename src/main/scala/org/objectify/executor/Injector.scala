@@ -7,9 +7,6 @@ import org.objectify.resolvers.{ ClassResolver, Resolver }
 
 /**
   * This object is responsible for finding, instantiating and executing resolvers for the given constructor
-  *
-  * @author Arthur Gonigberg
-  * @since 12-05-29
   */
 private[executor] object Injector {
 

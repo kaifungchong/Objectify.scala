@@ -5,16 +5,20 @@ import org.reflections.Reflections
 import scala.collection.JavaConversions._
 import org.objectify.policies.Policy
 import org.objectify.services.Service
-import org.objectify.responders.Responder
+import org.objectify.responders.ServiceResponder
 import org.reflections.util.{ ClasspathHelper, ConfigurationBuilder }
 
+/**
+  * This class is responsible for loading all the pertinent classes that need to be resolved or injected,
+  * and caching them.
+  */
 object ClassResolver {
     private val reflections = new Reflections(new ConfigurationBuilder().setUrls(ClasspathHelper.forPackage("org.objectify")).setScanners(new ResourcesScanner()))
 
     private val policies = subClassesOf(classOf[Policy])
-    private val services = subClassesOf(classOf[Service])
-    private val responders = subClassesOf(classOf[Responder])
-    private val resolvers = subClassesOf(classOf[Resolver[_ <: Any, _ <: Any]])
+    private val services = subClassesOf(classOf[Service[_]])
+    private val responders = subClassesOf(classOf[ServiceResponder[_,_]])
+    private val resolvers = subClassesOf(classOf[Resolver[_, _]])
 
     def resolvePolicyClass(string: String) = {
         resolveClass(string, policies)
