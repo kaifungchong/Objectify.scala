@@ -11,12 +11,13 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.WordSpec
 
 import javax.inject.Named
+import org.objectify.adapters.ObjectifyRequestAdapter
 
 @RunWith(classOf[JUnitRunner])
 class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar {
     val stringResolverActual = new StringResolver().apply(null)
     val currentUserResolverActual = new CurrentUserResolver().apply(null)
-    val resolverParamMock = mock[ObjectifyRequest]
+    val resolverParamMock = mock[ObjectifyRequestAdapter]
 
     "Injector" should {
         "resolve type" in {

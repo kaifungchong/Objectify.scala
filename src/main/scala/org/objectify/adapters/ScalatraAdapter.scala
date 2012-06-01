@@ -15,26 +15,32 @@ trait ScalatraAdapter extends Objectify with ServletBase {
       * Decorates the default bootstrap which has the configuration
       * validation in it
       */
-    override def bootstrap = {
-        super.bootstrap
+    override def bootstrap() {
+        super.bootstrap()
 
         /**
-          * For each action we map to the scalatra equivalent block paramter
+          * For each action we map to the Scalatra equivalent block parameter
           * though we are still bound to the HttpServletRequest and Response
           * currently.
           */
         actions.foreach(action => {
             val scalatraFunction = (action.method match {
                 case Options => options _
-                case Get     => get _
-                case Post    => post _
-                case Put     => put _
-                case Delete  => delete _
-                case Patch   => patch _
+                case Get => get _
+                case Post => post _
+                case Put => put _
+                case Delete => delete _
+                case Patch => patch _
             })
-            
-            scalatraFunction(action.route.getOrElse(throw new RuntimeException("No Route Found"))) {
-                execute(action, request, response)
+
+            scalatraFunction("/" + action.route.getOrElse(throw new RuntimeException("No Route Found"))) {
+                // wrap HttpServletRequest in adapter and get ObjectifyResponse
+                val objectifyResponse = execute(action, new HttpServletRequestAdapter(request))
+
+                // populate HttpServletResponse with ObjectifyResponse fields
+                response.setContentType(objectifyResponse.contentType)
+                response.setStatus(objectifyResponse.status)
+                response.getWriter.print(objectifyResponse.getSerializedEntity)
             }
         })
     }

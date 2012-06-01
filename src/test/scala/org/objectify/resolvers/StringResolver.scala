@@ -1,10 +1,10 @@
 package org.objectify.resolvers
 
-import org.objectify.executor.ObjectifyRequest
+import org.objectify.adapters.ObjectifyRequestAdapter
 
 /**
   * Sample resolver
   */
-class StringResolver extends Resolver[String, ObjectifyRequest] {
-    override def apply(param: ObjectifyRequest) = "johnny"
+class StringResolver extends Resolver[String, ObjectifyRequestAdapter] {
+    override def apply(param: ObjectifyRequestAdapter) = "johnny"
 }
