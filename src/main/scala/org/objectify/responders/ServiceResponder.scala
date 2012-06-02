@@ -1,5 +1,7 @@
 package org.objectify.responders
 
+import org.objectify.exceptions.ConfigurationException
+
 
 /**
   * The responder's job is to take a result from the service and format it so
@@ -12,7 +14,7 @@ abstract class ServiceResponder[T, P: Manifest] {
             apply(castClass.cast(serviceResult))
         }
         else {
-            throw new IllegalArgumentException("The service and responder provided are not compatible.")
+            throw new ConfigurationException("The service and responder provided are not compatible.")
         }
     }
 

@@ -10,10 +10,13 @@ import org.objectify.responders.{PicturesIndexResponder, BadPolicyResponder}
 import org.scalatest.matchers.ShouldMatchers
 import org.objectify.adapters.ObjectifyRequestAdapter
 import org.objectify.{ObjectifySugar, Action, Objectify}
+import org.scalatest.junit.JUnitRunner
+import org.junit.runner.RunWith
 
 /**
   * Testing the pipeline and sub-methods
   */
+@RunWith(classOf[JUnitRunner])
 class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar with ShouldMatchers {
     val objectify = Objectify()
     val pipeline = new ObjectifyPipeline(objectify)
@@ -60,7 +63,7 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
             val response = pipeline.handleRequest(action.get, req)
 
             // verify it worked
-            response.getSerializedEntity should equal("")
+            response.getSerializedEntity should equal("index")
         }
     }
 }

@@ -5,6 +5,7 @@ import org.objectify.{Action, Objectify}
 import org.objectify.services.Service
 import org.objectify.responders.{PolicyResponder, ServiceResponder}
 import org.objectify.adapters.ObjectifyRequestAdapter
+import org.objectify.exceptions.ObjectifyException
 
 /**
   * This class is responsible for executing the pipeline for the lifecycle of a request.
@@ -19,14 +20,18 @@ class ObjectifyPipeline(objectify: Objectify) {
 
         // if policies failed respond with first failure
         if (policyResponders.nonEmpty) {
-            generateResponse(instantiate[PolicyResponder[_]](policyResponders.head, req).apply())
+            generateResponse(() => {
+                instantiate[PolicyResponder[_]](policyResponders.head, req).apply()
+            })
         }
         // else execute the service call
         else {
             val service = instantiate[Service[_]](action.resolveServiceClass, req)
             val responder = instantiate[ServiceResponder[_, _]](action.resolveResponderClass, req)
 
-            generateResponse(responder.applyAny(service()))
+            generateResponse(() => {
+                responder.applyAny(service())
+            })
         }
     }
 
@@ -34,8 +39,20 @@ class ObjectifyPipeline(objectify: Objectify) {
         Invoker.invoke(klass, req)
     }
 
-    def generateResponse(result: Any): ObjectifyResponse[_] = {
-        new ObjectifyResponse("text/plain", 200, result)
+    def generateResponse(result: () => Any): ObjectifyResponse[_] = {
+        try {
+            val content = result()
+            // attempt to infer content type
+            val contentType = content match {
+                // todo fill this out when we know more
+                case _ => "text/html"
+            }
+            new ObjectifyResponse(contentType, 200, content)
+        }
+        catch {
+            case e: ObjectifyException => new ObjectifyResponse("text/plain", e.status, e.getMessage)
+            case e: Exception => new ObjectifyResponse("text/plain", 500, e.getMessage)
+        }
     }
 }
 

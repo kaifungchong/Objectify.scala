@@ -69,7 +69,7 @@ case class Action(method: HttpMethod,
         stringBuilder.append(',')
         stringBuilder.append(resolveServiceClass)
         stringBuilder.append(")")
-        stringBuilder.toString
+        stringBuilder.toString()
     }
 
     override def equals(other: Any): Boolean = {
@@ -152,43 +152,6 @@ case class Actions() extends Iterable[Action] {
             action.resolveResponderClass
         }
     }
-
-    //    // http verbs for configruration
-    //    def head(route: String, policies: List[Class[Policy]], service: Class[Service], responder: Class[Responder]) = {
-    //        action(HEAD, route, policies, service, responder)
-    //    }
-    //
-    //    def get(route: String, policies: List[Class[Policy]], service: Class[Service], responder: Class[Responder]) = {
-    //        action(GET, route, policies, service, responder)
-    //    }
-    //
-    //    def post(route: String, policies: List[Class[Policy]], service: Class[Service], responder: Class[Responder]) = {
-    //        action(POST, route, policies, service, responder)
-    //    }
-    //
-    //    def put(route: String, policies: List[Class[Policy]], service: Class[Service], responder: Class[Responder]) = {
-    //        action(PUT, route, policies, service, responder)
-    //    }
-    //
-    //    def delete(route: String, policies: List[Class[Policy]], service: Class[Service], responder: Class[Responder]) = {
-    //        action(DELETE, route, policies, service, responder)
-    //    }
-    //
-    //    def trace(route: String, policies: List[Class[Policy]], service: Class[Service], responder: Class[Responder]) = {
-    //        action(TRACE, route, policies, service, responder)
-    //    }
-    //
-    //    def options(route: String, policies: List[Class[Policy]], service: Class[Service], responder: Class[Responder]) = {
-    //        action(OPTIONS, route, policies, service, responder)
-    //    }
-    //
-    //    def connect(route: String, policies: List[Class[Policy]], service: Class[Service], responder: Class[Responder]) = {
-    //        action(CONNECT, route, policies, service, responder)
-    //    }
-    //
-    //    def patch(route: String, policies: List[Class[Policy]], service: Class[Service], responder: Class[Responder]) = {
-    //        action(PATCH, route, policies, service, responder)
-    //    }
 
     override def toString() = {
         val stringBuilder = new StringBuilder()

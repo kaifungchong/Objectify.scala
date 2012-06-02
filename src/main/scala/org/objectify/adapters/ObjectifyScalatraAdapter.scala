@@ -8,8 +8,9 @@ import org.objectify.HttpMethod.Post
 import org.objectify.HttpMethod.Put
 import org.objectify.Objectify
 import org.scalatra.servlet.ServletBase
+import org.objectify.exceptions.BadRequestException
 
-trait ScalatraAdapter extends Objectify with ServletBase {
+trait ObjectifyScalatraAdapter extends Objectify with ServletBase {
 
     /**
       * Decorates the default bootstrap which has the configuration
@@ -33,7 +34,7 @@ trait ScalatraAdapter extends Objectify with ServletBase {
                 case Patch => patch _
             })
 
-            scalatraFunction("/" + action.route.getOrElse(throw new RuntimeException("No Route Found"))) {
+            scalatraFunction("/" + action.route.getOrElse(throw new BadRequestException("No Route Found"))) {
                 // wrap HttpServletRequest in adapter and get ObjectifyResponse
                 val objectifyResponse = execute(action, new HttpServletRequestAdapter(request))
 
