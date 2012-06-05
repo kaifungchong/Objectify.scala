@@ -4,7 +4,7 @@ import org.scalatest.{BeforeAndAfterEach, WordSpec}
 import org.scalatest.mock.MockitoSugar
 import org.objectify.HttpMethod._
 import org.mockito.Mockito._
-import org.objectify.policies.{AuthenticationPolicy, BadPolicy, GoodPolicy, Policy}
+import org.objectify.policies.{AuthenticationPolicy, BadPolicy, GoodPolicy}
 import org.objectify.services.PicturesIndexService
 import org.objectify.responders.{PicturesIndexResponder, BadPolicyResponder}
 import org.scalatest.matchers.ShouldMatchers
@@ -31,7 +31,7 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
         responder = Some(~:[PicturesIndexResponder])))
 
     override protected def beforeEach() {
-        objectify.defaults policy ~:[Policy]
+        objectify.defaults policy ~:[GoodPolicy] -> ~:[BadPolicyResponder]
 
         objectify.actions resource("pictures", index = action)
 
