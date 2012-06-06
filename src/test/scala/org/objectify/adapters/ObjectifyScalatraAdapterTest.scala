@@ -18,7 +18,8 @@ import org.objectify.services.{Throws403, ThrowsConfig, ThrowsBadRequest}
   * Testing the Scalatra adapter
   */
 @RunWith(classOf[JUnitRunner])
-class ObjectifyScalatraAdapterTest extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar with ShouldMatchers with ScalatraSuite {
+class ObjectifyScalatraAdapterTest
+    extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar with ShouldMatchers with ScalatraSuite {
 
     val scalatrafied = new ObjectifyScalatraAdapter with ScalatraFilter {
         get("/test") {

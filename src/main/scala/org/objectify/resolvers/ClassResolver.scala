@@ -1,6 +1,5 @@
 package org.objectify.resolvers
 
-import org.reflections.scanners.ResourcesScanner
 import org.reflections.Reflections
 import scala.collection.JavaConversions._
 import org.objectify.policies.Policy
@@ -9,13 +8,16 @@ import org.objectify.responders.ServiceResponder
 import org.reflections.util.{ClasspathHelper, ConfigurationBuilder}
 import org.objectify.adapters.ObjectifyResponseAdapter
 import org.objectify.exceptions.ConfigurationException
+import org.reflections.scanners.{SubTypesScanner, ResourcesScanner}
 
 /**
   * This class is responsible for loading all the pertinent classes that need to be resolved or injected,
   * and caching them.
   */
 object ClassResolver {
-    private val reflections = new Reflections(new ConfigurationBuilder().setUrls(ClasspathHelper.forPackage("org.objectify")).setScanners(new ResourcesScanner()))
+    private val reflections = new Reflections(new ConfigurationBuilder()
+        .setUrls(ClasspathHelper.forJavaClassPath())
+        .setScanners(new ResourcesScanner(), new SubTypesScanner()))
 
     private val policies = subClassesOf(classOf[Policy])
     private val services = subClassesOf(classOf[Service[_]])
