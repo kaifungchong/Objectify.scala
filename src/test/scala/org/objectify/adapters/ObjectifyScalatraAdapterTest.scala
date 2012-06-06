@@ -55,7 +55,7 @@ class ObjectifyScalatraAdapterTest extends WordSpec with BeforeAndAfterEach with
             "get pictures show" in {
                 get("/pictures/12") {
                     status should equal(200)
-                    body should include("show")
+                    body should include("show 12")
                 }
             }
             "get pictures new" in {

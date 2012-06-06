@@ -8,7 +8,9 @@ import org.objectify.HttpMethod
 trait ObjectifyRequestAdapter {
     def getPath: String
 
-    def getQueryParameters: Map[String, Array[String]]
+    def getQueryParameters: Map[String, List[String]]
+
+    def getPathParameters: Map[String, String]
 
     def getHttpMethod: HttpMethod.Value
 }
