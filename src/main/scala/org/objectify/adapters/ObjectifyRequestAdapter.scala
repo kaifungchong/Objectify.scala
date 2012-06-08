@@ -13,4 +13,6 @@ trait ObjectifyRequestAdapter {
     def getPathParameters: Map[String, String]
 
     def getHttpMethod: HttpMethod.Value
+
+    def getBody: String
 }

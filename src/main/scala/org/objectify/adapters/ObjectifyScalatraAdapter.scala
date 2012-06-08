@@ -36,7 +36,7 @@ trait ObjectifyScalatraAdapter extends Objectify with ServletBase {
 
             scalatraFunction("/" + action.route.getOrElse(throw new BadRequestException("No Route Found"))) {
                 // wrap HttpServletRequest in adapter and get ObjectifyResponse
-                val objectifyResponse = execute(action, new HttpServletRequestAdapter(request, params.toMap))
+                val objectifyResponse = execute(action, new ScalatraRequestAdapter(request, params.toMap))
 
                 // populate HttpServletResponse with ObjectifyResponse fields
                 response.setContentType(objectifyResponse.contentType)

@@ -50,8 +50,15 @@ class ObjectifyPipeline(objectify: Objectify) {
             new ObjectifyResponse(contentType, 200, content)
         }
         catch {
-            case e: ObjectifyException => new ObjectifyResponse("text/plain", e.status, e.getMessage)
-            case e: Exception => new ObjectifyResponse("text/plain", 500, e.getMessage)
+            // todo add proper logging
+            case e: ObjectifyException => {
+                e.printStackTrace()
+                new ObjectifyResponse("text/plain", e.status, e.getMessage)
+            }
+            case e: Exception => {
+                e.printStackTrace()
+                new ObjectifyResponse("text/plain", 500, e.getMessage)
+            }
         }
     }
 }
