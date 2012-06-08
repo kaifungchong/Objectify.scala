@@ -11,7 +11,13 @@ abstract class ServiceResponder[T, P: Manifest] {
 
     final def applyAny(serviceResult: Any): T = {
         if (serviceResult != null && serviceResult.isInstanceOf[P]) {
-            apply(castClass.cast(serviceResult))
+            if (serviceResult.isInstanceOf[java.lang.Boolean] &&
+                castClass.equals(classOf[Boolean])) {
+                apply(Boolean2boolean(serviceResult.asInstanceOf[java.lang.Boolean]).asInstanceOf[P])
+            }
+            else {
+                apply(castClass.cast(serviceResult))
+            }
         }
         else {
             throw new ConfigurationException("The service and responder provided are not compatible.")
