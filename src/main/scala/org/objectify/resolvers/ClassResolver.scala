@@ -9,14 +9,17 @@ import org.reflections.util.{ClasspathHelper, ConfigurationBuilder}
 import org.objectify.adapters.ObjectifyResponseAdapter
 import org.objectify.exceptions.ConfigurationException
 import org.reflections.scanners.{SubTypesScanner, ResourcesScanner}
+import org.streum.configrity._
+import java.net.URL
+import java.io.FileNotFoundException
+import yaml.YAMLFormat
 
 /**
-  * This class is responsible for loading all the pertinent classes that need to be resolved or injected,
-  * and caching them.
-  */
+ * This class is responsible for loading all the pertinent classes that need to be resolved or injected,
+ * and caching them.
+ */
 object ClassResolver {
-    private val reflections = new Reflections(new ConfigurationBuilder()
-        .setUrls(ClasspathHelper.forJavaClassPath())
+    private val reflections = new Reflections(new ConfigurationBuilder().setUrls(getScannableUrls)
         .setScanners(new ResourcesScanner(), new SubTypesScanner()))
 
     private val policies = subClassesOf(classOf[Policy])
@@ -67,5 +70,31 @@ object ClassResolver {
         println()
 
         set.asInstanceOf[Set[Class[T]]]
+    }
+
+
+    private def getScannableUrls = {
+        /*
+       Load objectify base packages if they exist in the objectify.yml
+       -- if they don't exist, search the entire classpath
+        */
+        val config = try {
+            Configuration.loadResource("/objectify.yml", YAMLFormat)
+        }
+        catch {
+            case e: FileNotFoundException => null
+        }
+        val basePackages = if (config != null) config[List[String]]("packages_to_scan") else Nil
+        val urls: java.util.Collection[URL] = {
+            if (basePackages.isEmpty) {
+                ClasspathHelper.forJavaClassPath()
+            }
+            else {
+                val bp = "org.objectify" :: basePackages
+                bp.flatMap(pkg => ClasspathHelper.forPackage(pkg))
+            }
+        }
+
+        urls
     }
 }
