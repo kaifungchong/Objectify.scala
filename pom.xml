@@ -38,13 +38,8 @@
         </dependency>
         <dependency>
             <groupId>io.backchat.inflector</groupId>
-            <artifactId>scala-inflector_2.9.1</artifactId>
+            <artifactId>scala-inflector_${scala.version}</artifactId>
             <version>1.3.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.9.0</artifactId>
-            <version>1.7.2</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -57,20 +52,9 @@
             <version>2.1.0.M1</version>
         </dependency>
         <dependency>
-            <groupId>org.scalatra</groupId>
-            <artifactId>scalatra-scalatest_${scala.version}</artifactId>
-            <version>2.1.0.M1</version>
-        </dependency>
-        <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
             <version>1</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.8.1</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.streum</groupId>
@@ -81,6 +65,26 @@
             <groupId>org.streum</groupId>
             <artifactId>configrity-yaml_${scala.version}</artifactId>
             <version>0.10.2</version>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatra</groupId>
+            <artifactId>scalatra-scalatest_${scala.version}</artifactId>
+            <version>2.1.0.M1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_${scala.version}</artifactId>
+            <version>1.7.2</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
