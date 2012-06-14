@@ -11,21 +11,35 @@ object HttpMethod extends Enumeration {
     val Head, Get, Post, Put, Delete, Trace, Options, Connect, Patch = Value
 }
 
+object ContentType extends Enumeration {
+    type ContentType = Value
+    val JSON, HTML, XML, TEXT = Value
+
+    def getTypeString(contentType: ContentType) = contentType match {
+        case JSON => "application/json"
+        case XML => "application/xml"
+        case HTML => "text/html"
+        case _ => "text/plain"
+    }
+}
+
 import HttpMethod._
+import ContentType._
 
 /**
-  * An Objectify Action is a mapping of an HTTP Verb + URL pattern to a
-  * set of policies a service and a responder
-  */
+ * An Objectify Action is a mapping of an HTTP Verb + URL pattern to a
+ * set of policies a service and a responder
+ */
 case class Action(method: HttpMethod,
                   var name: String,
+                  contentType: ContentType = JSON,
                   var route: Option[String] = None,
                   policies: Option[Map[Class[_ <: Policy], Class[_ <: PolicyResponder[_]]]] = None,
                   service: Option[Class[_ <: Service[_]]] = None,
-                  responder: Option[Class[_ <: ServiceResponder[_,_]]] = None) {
+                  responder: Option[Class[_ <: ServiceResponder[_, _]]] = None) {
 
     // conditionally set the route
-    def setRouteIfNone(newRoute: String) = {
+    def setRouteIfNone(newRoute: String) {
         if (route.isEmpty) {
             route = Some(newRoute)
         }
@@ -36,17 +50,17 @@ case class Action(method: HttpMethod,
     }
 
     /**
-      * Resolves the service class by either returning the preset service class
-      * or find the class based on the name of this action
-      *
-      * eg: pictures index => PicturesDeleteService
-      * @return
-      */
+     * Resolves the service class by either returning the preset service class
+     * or find the class based on the name of this action
+     *
+     * eg: pictures index => PicturesDeleteService
+     * @return
+     */
     def resolveServiceClass: Class[_ <: Service[_]] = {
         service.getOrElse(ClassResolver.resolveServiceClass(getSerivceClassName(name)))
     }
 
-    def resolveResponderClass: Class[_ <: ServiceResponder[_,_]] = {
+    def resolveResponderClass: Class[_ <: ServiceResponder[_, _]] = {
         responder.getOrElse(ClassResolver.resolveResponderClass(getResponderClassName(name)))
     }
 
@@ -88,18 +102,18 @@ case class Actions() extends Iterable[Action] {
     var actions: Map[HttpMethod, Map[String, Action]] = HttpMethod.values.map(_ -> Map[String, Action]()).toMap
 
     /**
-      * Default routing configuration point assumes to create an
-      * policy free (public) set of routes that map to the
-      * following services
-      *
-      * GET 	/#{name} 		#{name}IndexService
-      * GET 	/#{name}/:id 	#{name}ShowService
-      * GET 	/#{name}/new 	#{name}NewService
-      * POST 	/#{name} 		#{name}CreationService
-      * GET 	/#{name}/edit 	#{name}EditService
-      * PUT 	/#{name}/:id	#{name}UpdateService
-      * DELETE 	/#{name}/:id 	#{name}DestructionService
-      */
+     * Default routing configuration point assumes to create an
+     * policy free (public) set of routes that map to the
+     * following services
+     *
+     * GET 	/#{name} 		#{name}IndexService
+     * GET 	/#{name}/:id 	#{name}ShowService
+     * GET 	/#{name}/new 	#{name}NewService
+     * POST 	/#{name} 		#{name}CreationService
+     * GET 	/#{name}/edit 	#{name}EditService
+     * PUT 	/#{name}/:id	#{name}UpdateService
+     * DELETE 	/#{name}/:id 	#{name}DestructionService
+     */
 
     def resource(name: String,
                  index: Option[Action] = Some(Action(Get, "index")),

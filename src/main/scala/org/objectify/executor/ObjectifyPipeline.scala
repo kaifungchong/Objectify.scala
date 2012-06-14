@@ -1,11 +1,11 @@
 package org.objectify.executor
 
 import org.objectify.policies.Policy
-import org.objectify.{Action, Objectify}
 import org.objectify.services.Service
 import org.objectify.responders.{PolicyResponder, ServiceResponder}
 import org.objectify.adapters.ObjectifyRequestAdapter
 import org.objectify.exceptions.ObjectifyException
+import org.objectify.{ContentType, Action, Objectify}
 
 /**
   * This class is responsible for executing the pipeline for the lifecycle of a request.
@@ -22,7 +22,7 @@ class ObjectifyPipeline(objectify: Objectify) {
         if (policyResponders.nonEmpty) {
             generateResponse(() => {
                 instantiate[PolicyResponder[_]](policyResponders.head, req).apply()
-            })
+            }, ContentType.getTypeString(action.contentType))
         }
         // else execute the service call
         else {
@@ -31,7 +31,7 @@ class ObjectifyPipeline(objectify: Objectify) {
 
             generateResponse(() => {
                 responder.applyAny(service())
-            })
+            }, ContentType.getTypeString(action.contentType))
         }
     }
 
@@ -39,14 +39,9 @@ class ObjectifyPipeline(objectify: Objectify) {
         Invoker.invoke(klass, req)
     }
 
-    def generateResponse(result: () => Any): ObjectifyResponse[_] = {
+    def generateResponse(result: () => Any, contentType: String): ObjectifyResponse[_] = {
         try {
             val content = result()
-            // attempt to infer content type
-            val contentType = content match {
-                // todo fill this out when we know more
-                case _ => "text/html"
-            }
             new ObjectifyResponse(contentType, 200, content)
         }
         catch {

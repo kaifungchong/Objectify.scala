@@ -7,16 +7,16 @@ import org.scalatest.{BeforeAndAfterEach, WordSpec}
 import org.scalatra.ScalatraFilter
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.objectify.{Action, ObjectifySugar}
 import org.objectify.HttpMethod._
 import org.objectify.responders.{PicturesIndexResponder, BadPolicyResponder}
 import org.objectify.policies.{AuthenticationPolicy, GoodPolicy}
 import org.objectify.services.{Throws403, ThrowsConfig, ThrowsBadRequest}
+import org.objectify.{ContentType, Action, ObjectifySugar}
 
 
 /**
-  * Testing the Scalatra adapter
-  */
+ * Testing the Scalatra adapter
+ */
 @RunWith(classOf[JUnitRunner])
 class ObjectifyScalatraAdapterTest
     extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar with ShouldMatchers with ScalatraSuite {
@@ -87,6 +87,21 @@ class ObjectifyScalatraAdapterTest
                 delete("/pictures/12") {
                     status should equal(200)
                     body should include("destroy")
+                }
+            }
+        }
+
+        "checking content type" should {
+            "return JSON by default" in {
+                get("/pictures") {
+                    header("Content-Type") should include("application/json")
+                }
+            }
+            "return overridden type" in {
+                scalatrafied.actions resource("pictures", index = Some(Action(Get, "index", ContentType.XML)))
+                scalatrafied.bootstrap()
+                get("/pictures") {
+                    header("Content-Type") should include("application/xml")
                 }
             }
         }
