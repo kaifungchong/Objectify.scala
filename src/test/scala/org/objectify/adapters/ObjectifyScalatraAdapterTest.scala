@@ -10,8 +10,8 @@ import org.scalatest.junit.JUnitRunner
 import org.objectify.HttpMethod._
 import org.objectify.responders.{PicturesIndexResponder, BadPolicyResponder}
 import org.objectify.policies.{AuthenticationPolicy, GoodPolicy}
-import org.objectify.services.{Throws403, ThrowsConfig, ThrowsBadRequest}
 import org.objectify.{ContentType, Action, ObjectifySugar}
+import org.objectify.services.{ThrowsUnexpected, Throws403, ThrowsConfig, ThrowsBadRequest}
 
 
 /**
@@ -120,6 +120,21 @@ class ObjectifyScalatraAdapterTest
 
                 get("/pictures") {
                     status should equal(400)
+                }
+            }
+            "return a 500 code for unexpected exceptions" in {
+                scalatrafied.actions resource("pictures", index = Some(Action(Get, "index",
+                    policies = Some(Map(
+                        ~:[GoodPolicy] -> ~:[BadPolicyResponder],
+                        ~:[AuthenticationPolicy] -> ~:[BadPolicyResponder])
+                    ),
+                    service = Some(~:[ThrowsUnexpected]),
+                    responder = Some(~:[PicturesIndexResponder]))
+                ))
+                scalatrafied.bootstrap()
+
+                get("/pictures") {
+                    status should equal(500)
                 }
             }
             "return a 500 code for config error" in {

@@ -12,6 +12,10 @@ class ThrowsBadRequest extends Service[String] {
     def apply() = throw new BadRequestException("somethingawful")
 }
 
+class ThrowsUnexpected extends Service[String] {
+    def apply() = throw new NullPointerException("whoa whoa whoa... hold up man... whoa")
+}
+
 class ThrowsConfig extends Service[String] {
     def apply() = throw new ConfigurationException("somethingawful")
 }

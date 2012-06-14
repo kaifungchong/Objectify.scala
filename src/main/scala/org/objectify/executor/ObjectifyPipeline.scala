@@ -6,13 +6,16 @@ import org.objectify.responders.{PolicyResponder, ServiceResponder}
 import org.objectify.adapters.ObjectifyRequestAdapter
 import org.objectify.exceptions.ObjectifyException
 import org.objectify.{ContentType, Action, Objectify}
+import com.twitter.logging.Logger
 
 /**
-  * This class is responsible for executing the pipeline for the lifecycle of a request.
-  */
+ * This class is responsible for executing the pipeline for the lifecycle of a request.
+ */
 class ObjectifyPipeline(objectify: Objectify) {
+    private val logger = Logger(classOf[ObjectifyPipeline])
 
     def handleRequest(action: Action, req: ObjectifyRequestAdapter): ObjectifyResponse[_] = {
+        logger.info("Handling request for: " + action)
         // execute policies
         val policyResponders =
             for {(policy, responder) <- action.resolvePolicies
@@ -45,13 +48,12 @@ class ObjectifyPipeline(objectify: Objectify) {
             new ObjectifyResponse(contentType, 200, content)
         }
         catch {
-            // todo add proper logging
             case e: ObjectifyException => {
-                e.printStackTrace()
+                logger.error(e, "Could not complete request")
                 new ObjectifyResponse("text/plain", e.status, e.getMessage)
             }
             case e: Exception => {
-                e.printStackTrace()
+                logger.error(e, "Unexpected exception")
                 new ObjectifyResponse("text/plain", 500, e.getMessage)
             }
         }

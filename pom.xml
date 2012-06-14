@@ -14,6 +14,11 @@
             <name>Scala-tools Maven2 Repository</name>
             <url>https://oss.sonatype.org/</url>
         </repository>
+        <repository>
+            <id>twitter</id>
+            <name>Maven Twitter Repo</name>
+            <url>http://maven.twttr.com/</url>
+        </repository>
     </repositories>
 
     <distributionManagement>
@@ -73,6 +78,11 @@
             <groupId>org.streum</groupId>
             <artifactId>configrity-yaml_${scala.version}</artifactId>
             <version>0.10.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.twitter</groupId>
+            <artifactId>util-logging</artifactId>
+            <version>1.10.2</version>
         </dependency>
 
         <!-- Test -->
