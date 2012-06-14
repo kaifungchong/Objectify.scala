@@ -16,6 +16,14 @@
         </repository>
     </repositories>
 
+    <distributionManagement>
+        <repository>
+            <id>matygo</id>
+            <name>Matygo Releases</name>
+            <url>http://office.matygo.com:8081/nexus/content/repositories/matygo/</url>
+        </repository>
+    </distributionManagement>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
