@@ -13,12 +13,14 @@ import org.streum.configrity._
 import java.net.URL
 import java.io.FileNotFoundException
 import yaml.YAMLFormat
+import com.twitter.logging.Logger
 
 /**
- * This class is responsible for loading all the pertinent classes that need to be resolved or injected,
- * and caching them.
- */
+  * This class is responsible for loading all the pertinent classes that need to be resolved or injected,
+  * and caching them.
+  */
 object ClassResolver {
+    private val logger = Logger(ClassResolver.getClass)
     private val reflections = new Reflections(new ConfigurationBuilder().setUrls(getScannableUrls)
         .setScanners(new ResourcesScanner(), new SubTypesScanner()))
 
@@ -65,9 +67,9 @@ object ClassResolver {
     private def subClassesOf[T](klass: Class[T]): Set[Class[T]] = {
         val set = reflections.getSubTypesOf(klass).toSet
 
-        println(klass.getSimpleName + " Mappings: ")
-        set.foreach(x => println(x.getSimpleName))
-        println()
+        logger.info(klass.getSimpleName + " Mappings: ")
+        set.foreach(x => logger.info(x.getSimpleName))
+        logger.info("")
 
         set.asInstanceOf[Set[Class[T]]]
     }
@@ -82,15 +84,20 @@ object ClassResolver {
             Configuration.loadResource("/objectify.yml", YAMLFormat)
         }
         catch {
-            case e: FileNotFoundException => null
+            case e: FileNotFoundException => {
+                logger.warning("Could not find objectify.yml, resorting to scanning entire classpath")
+                null
+            }
         }
         val basePackages = if (config != null) config[List[String]]("packages_to_scan") else Nil
         val urls: java.util.Collection[URL] = {
             if (basePackages.isEmpty) {
+                logger.info("Scanning entire classpath for Objectify classes...")
                 ClasspathHelper.forJavaClassPath()
             }
             else {
                 val bp = "org.objectify" :: basePackages
+                logger.info("Scanning base package specified in objectify.yml for Objectify classes: " + bp)
                 bp.flatMap(pkg => ClasspathHelper.forPackage(pkg))
             }
         }

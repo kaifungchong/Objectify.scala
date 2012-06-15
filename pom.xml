@@ -81,8 +81,8 @@
         </dependency>
         <dependency>
             <groupId>com.twitter</groupId>
-            <artifactId>util-logging</artifactId>
-            <version>1.10.2</version>
+            <artifactId>util-logging_${scala.version}</artifactId>
+            <version>1.12.13</version>
         </dependency>
 
         <!-- Test -->
