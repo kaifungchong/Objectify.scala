@@ -9,17 +9,24 @@ import org.objectify.{ContentType, Action, Objectify}
 import com.twitter.logging.Logger
 
 /**
- * This class is responsible for executing the pipeline for the lifecycle of a request.
- */
+  * This class is responsible for executing the pipeline for the lifecycle of a request.
+  */
 class ObjectifyPipeline(objectify: Objectify) {
     private val logger = Logger(classOf[ObjectifyPipeline])
 
     def handleRequest(action: Action, req: ObjectifyRequestAdapter): ObjectifyResponse[_] = {
         logger.info("Handling request for: " + action)
         // execute policies
-        val policyResponders =
-            for {(policy, responder) <- action.resolvePolicies
-                 if (!instantiate[Policy](policy, req).isAllowed)} yield responder
+        val policyResponders = {
+            if (action.resolvePolicies.nonEmpty) {
+                for {(policy, responder) <- action.resolvePolicies
+                     if (!instantiate[Policy](policy, req).isAllowed)} yield responder
+            }
+            else {
+                for {(policy, responder) <- objectify.defaults.policies
+                     if (!instantiate[Policy](policy, req).isAllowed)} yield responder
+            }
+        }
 
         // if policies failed respond with first failure
         if (policyResponders.nonEmpty) {
