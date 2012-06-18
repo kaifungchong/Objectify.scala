@@ -9,8 +9,9 @@ import org.objectify.HttpMethod.Put
 import org.objectify.Objectify
 import org.scalatra.servlet.ServletBase
 import org.objectify.exceptions.BadRequestException
+import org.scalatra.fileupload.FileUploadSupport
 
-trait ObjectifyScalatraAdapter extends Objectify with ServletBase {
+trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploadSupport {
 
     /**
       * Decorates the default bootstrap which has the configuration
@@ -36,7 +37,7 @@ trait ObjectifyScalatraAdapter extends Objectify with ServletBase {
 
             scalatraFunction("/" + action.route.getOrElse(throw new BadRequestException("No Route Found"))) {
                 // wrap HttpServletRequest in adapter and get ObjectifyResponse
-                val objectifyResponse = execute(action, new ScalatraRequestAdapter(request, params.toMap))
+                val objectifyResponse = execute(action, new ScalatraRequestAdapter(request, params.toMap, Some(fileParams)))
 
                 // populate HttpServletResponse with ObjectifyResponse fields
                 response.setContentType(objectifyResponse.contentType)

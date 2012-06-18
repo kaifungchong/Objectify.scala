@@ -31,4 +31,9 @@ class HttpServletRequestAdapter(request: HttpServletRequest, pathParameters: Map
         } else encoding
         Source.fromInputStream(request.getInputStream, enc).mkString
     }
+
+    def getFileParams = {
+        //todo
+        null
+    }
 }
