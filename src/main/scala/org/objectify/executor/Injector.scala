@@ -32,7 +32,7 @@ private[executor] object Injector {
                         paramType,
                         classManifest[P].erasure.asInstanceOf[Class[P]]
                     )
-                    constructorValues += resolver.newInstance()(resolverParam)
+                    constructorValues += Invoker.invoke(resolver, resolverParam).apply(resolverParam)
                 }
                 // if not, try to load resolver based on type
                 else {
@@ -41,7 +41,7 @@ private[executor] object Injector {
                         paramType,
                         classManifest[P].erasure.asInstanceOf[Class[P]]
                     )
-                    constructorValues += resolver.newInstance()(resolverParam)
+                    constructorValues += Invoker.invoke(resolver, resolverParam).apply(resolverParam)
                 }
         }
         constructorValues.toList
