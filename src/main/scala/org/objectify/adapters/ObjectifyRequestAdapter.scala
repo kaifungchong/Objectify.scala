@@ -2,6 +2,7 @@ package org.objectify.adapters
 
 import org.objectify.HttpMethod
 import org.apache.commons.fileupload.FileItem
+import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 
 /**
   * Adapter for requests
@@ -18,4 +19,10 @@ trait ObjectifyRequestAdapter {
     def getBody: String
 
     def getFileParams: Map[String, FileItem]
+
+    def getCookies: Map[String, String]
+
+    def getResponse: HttpServletResponse
+
+    def getRequest: HttpServletRequest
 }

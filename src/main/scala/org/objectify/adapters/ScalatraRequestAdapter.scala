@@ -1,14 +1,15 @@
 package org.objectify.adapters
 
-import org.scalatra.Request
+import org.scalatra.{Response, Request}
 import org.objectify.HttpMethod
 import org.objectify.exceptions.BadRequestException
 import org.apache.commons.fileupload.FileItem
+import org.scalatra.servlet.{ServletResponse, ServletRequest}
 
 /**
   * Scalatrafied Request!
   */
-class ScalatraRequestAdapter(request: Request, pathParameters: Map[String, String],
+class ScalatraRequestAdapter(request: Request, response: Response, pathParameters: Map[String, String],
                              fileParams: Option[collection.Map[String, FileItem]] = None)
     extends ObjectifyRequestAdapter {
 
@@ -25,6 +26,12 @@ class ScalatraRequestAdapter(request: Request, pathParameters: Map[String, Strin
 
     def getFileParams = {
         val fp = fileParams.getOrElse(Map())
-        fp.toMap[String,FileItem]
+        fp.toMap[String, FileItem]
     }
+
+    def getCookies = request.cookies.toMap
+
+    def getRequest = request.asInstanceOf[ServletRequest]
+
+    def getResponse = response.asInstanceOf[ServletResponse]
 }

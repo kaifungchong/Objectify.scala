@@ -1,6 +1,6 @@
 package org.objectify.adapters
 
-import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import org.objectify.HttpMethod
 import collection.JavaConversions
 import org.objectify.exceptions.BadRequestException
@@ -9,7 +9,8 @@ import io.Source
 /**
   * Request adapter for HttpServletRequest
   */
-class HttpServletRequestAdapter(request: HttpServletRequest, pathParameters: Map[String, String]) extends ObjectifyRequestAdapter {
+class HttpServletRequestAdapter(request: HttpServletRequest, response: HttpServletResponse,  pathParameters: Map[String, String])
+    extends ObjectifyRequestAdapter {
 
     def getPath = request.getServletPath + request.getContextPath
 
@@ -36,4 +37,13 @@ class HttpServletRequestAdapter(request: HttpServletRequest, pathParameters: Map
         //todo
         null
     }
+
+    def getCookies = {
+        // todo
+        null
+    }
+
+    def getRequest = request
+
+    def getResponse = response
 }
