@@ -15,7 +15,6 @@ class ObjectifyPipeline(objectify: Objectify) {
     private val logger = Logger(classOf[ObjectifyPipeline])
 
     def handleRequest(action: Action, req: ObjectifyRequestAdapter): ObjectifyResponse[_] = {
-        logger.info("Handling request for: " + action)
         // execute policies
         val policyResponders = {
             if (action.resolvePolicies.nonEmpty) {
