@@ -162,6 +162,9 @@ case class Actions() extends Iterable[Action] {
         new Resource(List(index, show, `new`, create, edit, update, destroy))
     }
 
+    /**
+      * This class is mainly here to help in creating a pretty syntax with chained calls
+      */
     class Resource(private val actions: List[Option[Action]]) {
         def policy(policy: PolicyTuple): Resource = {
             val applyActions = getActionsFromPolicyTuple(policy)
@@ -178,6 +181,7 @@ case class Actions() extends Iterable[Action] {
         }
 
         private def getActionsFromPolicyTuple(tuple: PolicyTuple): List[Option[Action]] = {
+            // either only or except -- not both
             if (tuple.onlyStr.nonEmpty) {
                 string2Actions(tuple.onlyStr)
             }
@@ -189,12 +193,14 @@ case class Actions() extends Iterable[Action] {
             }
         }
 
+        // try to match up name with reverse of resolveRouteAndName
         private def string2Actions(actionStr: Seq[String]) = {
             actions.filter(action => {
                 actionStr.filter(s => action.get.name.toLowerCase.endsWith(s)).size > 0
             })
         }
 
+        // apply a single policy to any number of actions
         private def applyPolicies(actions: List[Option[Action]], policy: (Class[_ <: Policy], Class[_ <: PolicyResponder[_]])) {
             actions.flatten.foreach(action => {
                 val actionPols = action.policies
