@@ -12,7 +12,8 @@ import org.junit.runner.RunWith
 @Suite.SuiteClasses(Array[Class[_]](
     classOf[ObjectifyScalatraAdapterTest],
     classOf[InjectorTest],
-    classOf[ObjectifyPipelineTest]
+    classOf[ObjectifyPipelineTest],
+    classOf[ObjectifyTest]
 ))
 class AllTests {
     // nothing
