@@ -4,7 +4,7 @@
     <groupId>org.objectify</groupId>
     <artifactId>objectify-scala</artifactId>
     <packaging>jar</packaging>
-    <version>0.0.3</version>
+    <version>0.0.4</version>
     <name>Scala Port of the Objectify Framework</name>
     <url>https://github.com/bitlove/objectify</url>
 
