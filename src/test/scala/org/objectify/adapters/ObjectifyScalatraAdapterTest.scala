@@ -15,8 +15,8 @@ import org.objectify.services.{ThrowsUnexpected, Throws403, ThrowsConfig, Throws
 
 
 /**
- * Testing the Scalatra adapter
- */
+  * Testing the Scalatra adapter
+  */
 @RunWith(classOf[JUnitRunner])
 class ObjectifyScalatraAdapterTest
     extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar with ShouldMatchers with ScalatraSuite {

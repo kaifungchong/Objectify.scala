@@ -3,7 +3,9 @@ package org.objectify
 import adapters.ObjectifyRequestAdapter
 import executor.{ObjectifyResponse, ObjectifyPipeline}
 
-case class Objectify(defaults: Defaults = Defaults(), actions: Actions = Actions() ) {
+case class Objectify(defaults: Defaults = Defaults(), actions: Actions = Actions())
+    extends ObjectifySugar with ObjectifyImplicits {
+
     override def toString = {
         "Objectify Configuration" + actions.toString
     }

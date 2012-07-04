@@ -34,7 +34,7 @@ case class Action(method: HttpMethod,
                   var name: String,
                   contentType: ContentType = JSON,
                   var route: Option[String] = None,
-                  policies: Option[Map[Class[_ <: Policy], Class[_ <: PolicyResponder[_]]]] = None,
+                  var policies: Option[Map[Class[_ <: Policy], Class[_ <: PolicyResponder[_]]]] = None,
                   service: Option[Class[_ <: Service[_]]] = None,
                   responder: Option[Class[_ <: ServiceResponder[_, _]]] = None) {
 
@@ -97,6 +97,21 @@ case class Action(method: HttpMethod,
     override def hashCode() = method.hashCode() + name.hashCode
 }
 
+class PolicyTuple(val tuple: (Class[_ <: Policy], Class[_ <: PolicyResponder[_]])) {
+    var onlyStr: List[String] = Nil
+    var exceptStr: List[String] = Nil
+
+    def only(actions: String*) = {
+        onlyStr = actions.toList
+        this
+    }
+
+    def except(actions: String*) = {
+        exceptStr = actions.toList
+        this
+    }
+}
+
 case class Actions() extends Iterable[Action] {
 
     var actions: Map[HttpMethod, Map[String, Action]] = HttpMethod.values.map(_ -> Map[String, Action]()).toMap
@@ -130,7 +145,7 @@ case class Actions() extends Iterable[Action] {
                  create: Option[Action] = Some(Action(Post, "create")),
                  edit: Option[Action] = Some(Action(Get, "edit")),
                  update: Option[Action] = Some(Action(Put, "update")),
-                 destroy: Option[Action] = Some(Action(Delete, "destroy"))) {
+                 destroy: Option[Action] = Some(Action(Delete, "destroy"))): Resource = {
 
         // update the routes if they haven't been set
         val route = name.pluralize
@@ -143,6 +158,50 @@ case class Actions() extends Iterable[Action] {
         resolveRouteAndName(edit, route, route + "/:id/edit")
         resolveRouteAndName(update, route, route + "/:id")
         resolveRouteAndName(destroy, route, route + "/:id")
+
+        new Resource(List(index, show, `new`, create, edit, update, destroy))
+    }
+
+    class Resource(private val actions: List[Option[Action]]) {
+        def policy(policy: PolicyTuple): Resource = {
+            val applyActions = getActionsFromPolicyTuple(policy)
+            applyPolicies(applyActions, policy.tuple)
+            this
+        }
+
+        def policies(policies: PolicyTuple*): Resource = {
+            for (policy <- policies) {
+                val applyActions = getActionsFromPolicyTuple(policy)
+                applyPolicies(applyActions, policy.tuple)
+            }
+            this
+        }
+
+        private def getActionsFromPolicyTuple(tuple: PolicyTuple): List[Option[Action]] = {
+            if (tuple.onlyStr.nonEmpty) {
+                string2Actions(tuple.onlyStr)
+            }
+            else if (tuple.exceptStr.nonEmpty) {
+                actions.filterNot(string2Actions(tuple.exceptStr).contains(_))
+            }
+            else {
+                actions
+            }
+        }
+
+        private def string2Actions(actionStr: Seq[String]) = {
+            actions.filter(action => {
+                actionStr.filter(s => action.get.name.toLowerCase.endsWith(s)).size > 0
+            })
+        }
+
+        private def applyPolicies(actions: List[Option[Action]], policy: (Class[_ <: Policy], Class[_ <: PolicyResponder[_]])) {
+            actions.flatten.foreach(action => {
+                val actionPols = action.policies
+                val allPolicies = if (actionPols.isDefined) actionPols.get ++ Map(policy) else Map(policy)
+                action.policies = Some(allPolicies)
+            })
+        }
     }
 
     private def resolveRouteAndName(actionOption: Option[Action], namePrefix: String, route: String) {
