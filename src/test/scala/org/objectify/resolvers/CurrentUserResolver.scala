@@ -8,3 +8,7 @@ import org.objectify.adapters.ObjectifyRequestAdapter
 class CurrentUserResolver extends Resolver[String, ObjectifyRequestAdapter] {
     override def apply(req: ObjectifyRequestAdapter) = "jack"
 }
+
+class ListCurrentUserResolver extends Resolver[List[String], ObjectifyRequestAdapter] {
+    override def apply(req: ObjectifyRequestAdapter) = List("jack")
+}

@@ -8,3 +8,7 @@ import org.objectify.adapters.ObjectifyRequestAdapter
 class StringResolver extends Resolver[String, ObjectifyRequestAdapter] {
     override def apply(param: ObjectifyRequestAdapter) = "johnny"
 }
+
+class ListStringResolver extends Resolver[List[String], ObjectifyRequestAdapter] {
+    override def apply(param: ObjectifyRequestAdapter) = List("johnny")
+}

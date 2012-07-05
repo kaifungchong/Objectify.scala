@@ -2,8 +2,7 @@ package org.objectify.executor
 
 import org.junit.runner.RunWith
 import org.objectify.policies.Policy
-import org.objectify.resolvers.CurrentUserResolver
-import org.objectify.resolvers.StringResolver
+import org.objectify.resolvers.{ListCurrentUserResolver, ListStringResolver, CurrentUserResolver, StringResolver}
 import org.objectify.ObjectifySugar
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
@@ -17,6 +16,8 @@ import org.objectify.adapters.ObjectifyRequestAdapter
 class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar {
     val stringResolverActual = new StringResolver().apply(null)
     val currentUserResolverActual = new CurrentUserResolver().apply(null)
+    val listStringResolverActual = new ListStringResolver().apply(null)
+    val listCurrentUserResolverActual = new ListCurrentUserResolver().apply(null)
     val resolverParamMock = mock[ObjectifyRequestAdapter]
 
     "Injector" should {
@@ -50,6 +51,19 @@ class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar wi
                     currentUserResolverActual
                 )))
         }
+
+        "resolve annotation and generic type" in {
+            assert(Injector.getInjectedResolverParams(manifest[TestPolicyGeneric1].erasure.getConstructors.head, resolverParamMock)
+                .asInstanceOf[List[String]].equals(List(listStringResolverActual, currentUserResolverActual)))
+        }
+        "resolve generic annotation and type" in {
+            assert(Injector.getInjectedResolverParams(manifest[TestPolicyGeneric2].erasure.getConstructors.head, resolverParamMock)
+                .asInstanceOf[List[String]].equals(List(stringResolverActual, listCurrentUserResolverActual)))
+        }
+        "resolve generic annotation and generic type" in {
+            assert(Injector.getInjectedResolverParams(manifest[TestPolicyGeneric3].erasure.getConstructors.head, resolverParamMock)
+                .asInstanceOf[List[String]].equals(List(listStringResolverActual, listCurrentUserResolverActual)))
+        }
     }
 }
 
@@ -80,3 +94,14 @@ private class TestPolicy5(string1: String,
     extends Policy {
     def isAllowed = true
 }
+
+private class TestPolicyGeneric1(string: List[String], @Named("CurrentUserResolver") user: String) extends Policy {
+    def isAllowed = true
+}
+private class TestPolicyGeneric2(string: String, @Named("ListCurrentUserResolver") user: List[String]) extends Policy {
+    def isAllowed = true
+}
+private class TestPolicyGeneric3(string: List[String], @Named("ListCurrentUserResolver") user: List[String]) extends Policy {
+    def isAllowed = true
+}
+
