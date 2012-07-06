@@ -25,11 +25,13 @@ private[executor] object Injector {
             // assume only one annotation per parameter
                 val paramAnnotation = paramAnnotations.headOption
 
+                // if it an instance of class then it has no generic parameter
                 if (genParamType.isInstanceOf[Class[_]]) {
                     val paramType = genParamType.asInstanceOf[Class[_]]
 
                     constructorValues += invokeParameter(paramAnnotation, paramType, resolverParam)
                 }
+                // otherwise, it has to be an instance of ParameterizedType
                 else if (genParamType.isInstanceOf[ParameterizedType]) {
                     val paramType = genParamType.asInstanceOf[ParameterizedType]
                     val rawType = paramType.getRawType.asInstanceOf[Class[_]]
@@ -38,7 +40,6 @@ private[executor] object Injector {
 
                     constructorValues += invokeParameter(paramAnnotation, rawType, resolverParam, Some(genericType))
                 }
-
         }
         constructorValues.toList
     }
