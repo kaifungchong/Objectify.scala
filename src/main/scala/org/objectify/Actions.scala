@@ -1,5 +1,6 @@
 package org.objectify
 
+import exceptions.ConfigurationException
 import org.objectify.policies.Policy
 import org.objectify.services.Service
 import mojolly.inflector.InflectorImports._
@@ -218,7 +219,7 @@ case class Actions() extends Iterable[Action] {
         })
     }
 
-    def action(action: Action) {
+    private def action(action: Action) {
         var map = actions(action.method)
         map += (action.route.get -> action)
         actions += (action.method -> map)
@@ -235,8 +236,21 @@ case class Actions() extends Iterable[Action] {
             (string, action) <- actionsEntry
         } {
             action.resolvePolicies
-            action.resolveServiceClass
-            action.resolveResponderClass
+            val service = action.resolveServiceClass
+            val responder = action.resolveResponderClass
+
+            // make sure service and resolver are compatible
+            val returnType = service.getMethod("apply").getReturnType
+            try {
+                responder.getMethod("apply", returnType).getParameterTypes.head
+            }
+            catch {
+                case e: NoSuchMethodException =>
+                    val parameterType = responder.getMethods.filter(_.getName.startsWith("apply")).headOption
+                    throw new ConfigurationException("Service [%s] and Responder [%s] are not compatible. " +
+                        "Service return type [%s] does not match Responder apply method parameter [%s]."
+                        format(service.toString, responder.toString, returnType.toString, parameterType.getOrElse("Undefined").toString))
+            }
         }
     }
 
