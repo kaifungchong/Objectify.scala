@@ -38,6 +38,14 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
         // mock HTTP request methods
         when(req.getHttpMethod).thenReturn(Get)
         when(req.getPath).thenReturn("/pictures")
+
+        super.beforeEach()
+    }
+
+    override protected def afterEach() {
+        objectify.defaults.globalPolicies = Map()
+        objectify.defaults.defaultPolicies = Map()
+        super.afterEach()
     }
 
     "The handle method" should {
@@ -58,6 +66,85 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
                 service = Some(~:[PicturesIndexService]),
                 responder = Some(~:[PicturesIndexResponder]))
             )
+
+            // do the method call
+            val response = pipeline.handleRequest(action.get, req)
+
+            // verify it worked
+            response.getSerializedEntity should equal("index")
+        }
+
+        "execute global and local policies" in {
+            objectify.defaults globalPolicy ~:[BadPolicy] -> ~:[BadPolicyResponder]
+
+            action = Some(Action(Get, "index",
+                policies = Some(Map(~:[AuthenticationPolicy] -> ~:[BadPolicyResponder])),
+                service = Some(~:[PicturesIndexService]),
+                responder = Some(~:[PicturesIndexResponder]))
+            )
+
+            // do the method call
+            val response = pipeline.handleRequest(action.get, req)
+
+            // verify it worked
+            response.getSerializedEntity should equal(new BadPolicyResponder()())
+        }
+
+        "execute global and local policies 2" in {
+            objectify.defaults globalPolicy ~:[GoodPolicy] -> ~:[BadPolicyResponder]
+
+            action = Some(Action(Get, "index",
+                policies = Some(Map(~:[BadPolicy] -> ~:[BadPolicyResponder])),
+                service = Some(~:[PicturesIndexService]),
+                responder = Some(~:[PicturesIndexResponder]))
+            )
+
+            // do the method call
+            val response = pipeline.handleRequest(action.get, req)
+
+            // verify it worked
+            response.getSerializedEntity should equal(new BadPolicyResponder()())
+        }
+
+        "execute global and default policies" in {
+            objectify.defaults globalPolicy ~:[GoodPolicy] -> ~:[BadPolicyResponder]
+            objectify.defaults policy ~:[BadPolicy] -> ~:[BadPolicyResponder]
+
+            action = Some(Action(Get, "index",
+                service = Some(~:[PicturesIndexService]),
+                responder = Some(~:[PicturesIndexResponder])))
+
+            // do the method call
+            val response = pipeline.handleRequest(action.get, req)
+
+            // verify it worked
+            response.getSerializedEntity should equal(new BadPolicyResponder()())
+        }
+
+        "ignore global and execute default policies" in {
+            objectify.defaults globalPolicy ~:[BadPolicy] -> ~:[BadPolicyResponder]
+            objectify.defaults policy ~:[GoodPolicy] -> ~:[BadPolicyResponder]
+
+            action = Some(Action(Get, "index",
+                service = Some(~:[PicturesIndexService]),
+                responder = Some(~:[PicturesIndexResponder]),
+                ignoreGlobalPolicies = true))
+
+            // do the method call
+            val response = pipeline.handleRequest(action.get, req)
+
+            // verify it worked
+            response.getSerializedEntity should equal("index")
+        }
+
+        "ignore global and execute local policies" in {
+            objectify.defaults globalPolicy ~:[BadPolicy] -> ~:[BadPolicyResponder]
+
+            action = Some(Action(Get, "index",
+                policies = Some(Map(~:[GoodPolicy] -> ~:[BadPolicyResponder])),
+                service = Some(~:[PicturesIndexService]),
+                responder = Some(~:[PicturesIndexResponder]),
+                ignoreGlobalPolicies = true))
 
             // do the method call
             val response = pipeline.handleRequest(action.get, req)

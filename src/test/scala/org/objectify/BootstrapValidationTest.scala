@@ -10,10 +10,13 @@ import responders.ServiceResponder
 import services.PicturesIndexService
 import org.scalatest.mock.MockitoSugar
 import HttpMethod._
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
 /**
   * Making sure bootstrap validation works correctly
   */
+@RunWith(classOf[JUnitRunner])
 class BootstrapValidationTest
     extends WordSpec with ShouldMatchers with BeforeAndAfterEach with ScalatraSuite with ObjectifySugar with MockitoSugar {
 

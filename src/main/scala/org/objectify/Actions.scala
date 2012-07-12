@@ -37,7 +37,8 @@ case class Action(method: HttpMethod,
                   var route: Option[String] = None,
                   var policies: Option[Map[Class[_ <: Policy], Class[_ <: PolicyResponder[_]]]] = None,
                   service: Option[Class[_ <: Service[_]]] = None,
-                  responder: Option[Class[_ <: ServiceResponder[_, _]]] = None) {
+                  responder: Option[Class[_ <: ServiceResponder[_, _]]] = None,
+                  var ignoreGlobalPolicies: Boolean = false) {
 
     // conditionally set the route
     def setRouteIfNone(newRoute: String) {

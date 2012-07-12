@@ -15,16 +15,13 @@ class ObjectifyPipeline(objectify: Objectify) {
     private val logger = Logger(classOf[ObjectifyPipeline])
 
     def handleRequest(action: Action, req: ObjectifyRequestAdapter): ObjectifyResponse[_] = {
+        // determine which policies to execute -- globals + action defaults or globals + action overrides
+        val policiesToExecute = getPolicies(action)
+
         // execute policies
         val policyResponders = {
-            if (action.resolvePolicies.nonEmpty) {
-                for {(policy, responder) <- action.resolvePolicies
-                     if (!instantiate[Policy](policy, req).isAllowed)} yield responder
-            }
-            else {
-                for {(policy, responder) <- objectify.defaults.policies
-                     if (!instantiate[Policy](policy, req).isAllowed)} yield responder
-            }
+            for {(policy, responder) <- policiesToExecute
+                 if (!instantiate[Policy](policy, req).isAllowed)} yield responder
         }
 
         // if policies failed respond with first failure
@@ -42,6 +39,20 @@ class ObjectifyPipeline(objectify: Objectify) {
                 responder.applyAny(service())
             }, ContentType.getTypeString(action.contentType))
         }
+    }
+
+    private def getPolicies(action: Action) = {
+        if (!action.ignoreGlobalPolicies)
+            objectify.defaults.globalPolicies ++ getLocalPolicies(action)
+        else
+            getLocalPolicies(action)
+    }
+
+    private def getLocalPolicies(action: Action) = {
+        if (action.resolvePolicies.nonEmpty)
+            action.resolvePolicies
+        else
+            objectify.defaults.defaultPolicies
     }
 
     private def instantiate[T: ClassManifest](klass: Class[_ <: T], req: ObjectifyRequestAdapter) = {

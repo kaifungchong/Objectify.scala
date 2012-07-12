@@ -13,7 +13,8 @@ import org.junit.runner.RunWith
     classOf[ObjectifyScalatraAdapterTest],
     classOf[InjectorTest],
     classOf[ObjectifyPipelineTest],
-    classOf[ObjectifyTest]
+    classOf[ObjectifyTest],
+    classOf[BootstrapValidationTest]
 ))
 class AllTests {
     // nothing
