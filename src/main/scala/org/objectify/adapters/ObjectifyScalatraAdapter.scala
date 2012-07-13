@@ -8,7 +8,7 @@ import org.objectify.HttpMethod.Post
 import org.objectify.HttpMethod.Put
 import org.objectify.Objectify
 import org.scalatra.servlet.ServletBase
-import org.objectify.exceptions.BadRequestException
+import org.objectify.exceptions.{ObjectifyExceptionWithCause, ObjectifyException, BadRequestException}
 import org.scalatra.fileupload.FileUploadSupport
 import org.scalatra.CookieSupport
 
@@ -46,5 +46,16 @@ trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploa
                 response.getWriter.print(objectifyResponse.getSerializedEntity)
             }
         })
+    }
+
+    error {
+        case e: ObjectifyException => {
+            status = e.status
+            e.getMessage
+        }
+        case e: ObjectifyExceptionWithCause => {
+            status = e.status
+            e.getMessage
+        }
     }
 }

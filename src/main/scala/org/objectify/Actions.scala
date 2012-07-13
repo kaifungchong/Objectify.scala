@@ -120,8 +120,9 @@ case class Actions() extends Iterable[Action] {
 
     def action(httpMethod: HttpMethod, name: String, route: String, contentType: ContentType = JSON,
                policies: Option[Map[Class[_ <: Policy], Class[_ <: PolicyResponder[_]]]] = None,
-               service: Option[Class[_ <: Service[_]]] = None, responder: Option[Class[_ <: ServiceResponder[_, _]]] = None) {
-        val action = Action(httpMethod, name, contentType, Some(route), policies, service, responder)
+               service: Option[Class[_ <: Service[_]]] = None, responder: Option[Class[_ <: ServiceResponder[_, _]]] = None,
+               ignoreGlobalPolicies: Boolean = false) {
+        val action = Action(httpMethod, name, contentType, Some(route), policies, service, responder, ignoreGlobalPolicies)
 
         resolveRouteAndName(Some(action), "", route)
     }

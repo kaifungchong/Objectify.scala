@@ -4,16 +4,13 @@ import org.objectify.policies.Policy
 import org.objectify.services.Service
 import org.objectify.responders.{PolicyResponder, ServiceResponder}
 import org.objectify.adapters.ObjectifyRequestAdapter
-import org.objectify.exceptions.ObjectifyException
+import org.objectify.exceptions.{ObjectifyExceptionWithCause, ObjectifyException}
 import org.objectify.{ContentType, Action, Objectify}
-import com.twitter.logging.Logger
 
 /**
   * This class is responsible for executing the pipeline for the lifecycle of a request.
   */
 class ObjectifyPipeline(objectify: Objectify) {
-    private val logger = Logger(classOf[ObjectifyPipeline])
-
     def handleRequest(action: Action, req: ObjectifyRequestAdapter): ObjectifyResponse[_] = {
         // determine which policies to execute -- globals + action defaults or globals + action overrides
         val policiesToExecute = getPolicies(action)
@@ -66,12 +63,13 @@ class ObjectifyPipeline(objectify: Objectify) {
         }
         catch {
             case e: ObjectifyException => {
-                logger.error(e, "Could not complete request")
-                new ObjectifyResponse("text/plain", e.status, e.getMessage)
+                throw e
+            }
+            case e: ObjectifyExceptionWithCause => {
+                throw e
             }
             case e: Exception => {
-                logger.error(e, "Unexpected exception")
-                new ObjectifyResponse("text/plain", 500, e.getMessage)
+                throw new ObjectifyExceptionWithCause(500, "Unexpected Exception", e)
             }
         }
     }
