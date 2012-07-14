@@ -5,7 +5,7 @@ import org.scalatest.mock.MockitoSugar
 import org.objectify.HttpMethod._
 import org.mockito.Mockito._
 import org.objectify.policies.{AuthenticationPolicy, BadPolicy, GoodPolicy}
-import org.objectify.services.PicturesIndexService
+import org.objectify.services.{NullService, PicturesIndexService}
 import org.objectify.responders.{PicturesIndexResponder, BadPolicyResponder}
 import org.scalatest.matchers.ShouldMatchers
 import org.objectify.adapters.ObjectifyRequestAdapter
@@ -34,6 +34,8 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
         objectify.defaults policy ~:[GoodPolicy] -> ~:[BadPolicyResponder]
 
         objectify.actions resource("pictures", index = action)
+
+        objectify.postServiceHook = (sr, responder) => {}
 
         // mock HTTP request methods
         when(req.getHttpMethod).thenReturn(Get)
@@ -150,6 +152,42 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
             val response = pipeline.handleRequest(action.get, req)
 
             // verify it worked
+            response.getSerializedEntity should equal("index")
+        }
+
+        "execute post service hook true" in {
+            objectify.postServiceHook = (sr, responder) => {
+                if ( sr.toString.equalsIgnoreCase("null") ) responder.status = Some(422)
+            }
+
+            action = Some(Action(Get, "index",
+                policies = Some(Map(~:[GoodPolicy] -> ~:[BadPolicyResponder])),
+                service = Some(~:[NullService]),
+                responder = Some(~:[PicturesIndexResponder])))
+
+            // do the method call
+            val response = pipeline.handleRequest(action.get, req)
+
+            // verify it worked
+            response.status should be(422)
+            response.getSerializedEntity should equal("null")
+        }
+
+        "execute post service hook false" in {
+            objectify.postServiceHook = (sr, responder) => {
+                if ( sr.toString.equalsIgnoreCase("null") ) responder.status = Some(422)
+            }
+
+            action = Some(Action(Get, "index",
+                policies = Some(Map(~:[GoodPolicy] -> ~:[BadPolicyResponder])),
+                service = Some(~:[PicturesIndexService]),
+                responder = Some(~:[PicturesIndexResponder])))
+
+            // do the method call
+            val response = pipeline.handleRequest(action.get, req)
+
+            // verify it worked
+            response.status should be(200)
             response.getSerializedEntity should equal("index")
         }
     }

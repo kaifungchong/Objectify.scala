@@ -24,3 +24,7 @@ class Throws403 extends Service[String] {
     def apply():String = throw new ObjectifyException(403, "somethingawful")
 }
 
+class NullService extends Service[String] {
+    def apply():String = "null"
+}
+

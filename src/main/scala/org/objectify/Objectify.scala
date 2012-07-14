@@ -3,6 +3,7 @@ package org.objectify
 import adapters.ObjectifyRequestAdapter
 import executor.{ObjectifyResponse, ObjectifyPipeline}
 import com.twitter.logging.Logger
+import responders.ServiceResponder
 
 case class Objectify(defaults: Defaults = Defaults(), actions: Actions = Actions())
     extends ObjectifySugar with ObjectifyImplicits {
@@ -24,4 +25,6 @@ case class Objectify(defaults: Defaults = Defaults(), actions: Actions = Actions
 
         response
     }
+
+    var postServiceHook = (serviceResult:Any, responder: ServiceResponder[_,_]) => {}
 }

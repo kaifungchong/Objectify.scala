@@ -127,6 +127,9 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <useFsc>true</useFsc>
+                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -8,6 +8,7 @@ import org.objectify.exceptions.ConfigurationException
   * that it can be returned to the web framework.
   */
 abstract class ServiceResponder[T, P: Manifest] {
+    var status:Option[Int] = None
 
     final def applyAny(serviceResult: Any): T = {
         if (serviceResult != null && serviceResult.isInstanceOf[P]) {

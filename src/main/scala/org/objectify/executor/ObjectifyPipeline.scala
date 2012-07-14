@@ -24,7 +24,8 @@ class ObjectifyPipeline(objectify: Objectify) {
         // if policies failed respond with first failure
         if (policyResponders.nonEmpty) {
             generateResponse(() => {
-                instantiate[PolicyResponder[_]](policyResponders.head, req).apply()
+                val responder = instantiate[PolicyResponder[_]](policyResponders.head, req)
+                (responder.apply(), responder.status)
             }, ContentType.getTypeString(action.contentType))
         }
         // else execute the service call
@@ -33,7 +34,14 @@ class ObjectifyPipeline(objectify: Objectify) {
             val responder = instantiate[ServiceResponder[_, _]](action.resolveResponderClass, req)
 
             generateResponse(() => {
-                responder.applyAny(service())
+                // get the service result
+                val serviceResult = service()
+
+                // execute post service (pre-responder hook)
+                objectify.postServiceHook(serviceResult, responder)
+
+                // execute responder and extract status
+                (responder.applyAny(serviceResult), responder.status)
             }, ContentType.getTypeString(action.contentType))
         }
     }
@@ -56,10 +64,10 @@ class ObjectifyPipeline(objectify: Objectify) {
         Invoker.invoke(klass, req)
     }
 
-    def generateResponse(result: () => Any, contentType: String): ObjectifyResponse[_] = {
+    def generateResponse(result: () => (Any, Option[Int]), contentType: String): ObjectifyResponse[_] = {
         try {
-            val content = result()
-            new ObjectifyResponse(contentType, 200, content)
+            val (content, status) = result()
+            new ObjectifyResponse(contentType, status.getOrElse(200), content)
         }
         catch {
             case e: ObjectifyException => {
