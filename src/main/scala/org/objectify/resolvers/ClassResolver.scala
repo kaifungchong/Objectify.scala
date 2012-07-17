@@ -14,6 +14,7 @@ import java.net.URL
 import java.io.FileNotFoundException
 import yaml.YAMLFormat
 import com.twitter.logging.Logger
+import collection.immutable.TreeSet
 
 /**
   * This class is responsible for loading all the pertinent classes that need to be resolved or injected,
@@ -68,7 +69,7 @@ object ClassResolver {
         val set = reflections.getSubTypesOf(klass).toSet
 
         logger.info(klass.getSimpleName + " Mappings: ")
-        set.foreach(x => logger.info(x.getSimpleName))
+        set.toList.sortBy(_.getSimpleName).foreach(x => logger.info(x.getSimpleName))
         logger.info("")
 
         set.asInstanceOf[Set[Class[T]]]
