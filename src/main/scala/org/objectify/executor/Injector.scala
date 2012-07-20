@@ -35,17 +35,25 @@ private[executor] object Injector {
                 else if (genParamType.isInstanceOf[ParameterizedType]) {
                     val paramType = genParamType.asInstanceOf[ParameterizedType]
                     val rawType = paramType.getRawType.asInstanceOf[Class[_]]
-                    // assume only one generic type
-                    val genericType = paramType.getActualTypeArguments.head.asInstanceOf[Class[_]]
+                    val genericTypes = new ListBuffer[Class[_]]()
 
-                    constructorValues += invokeParameter(paramAnnotation, rawType, resolverParam, Some(genericType))
+                    var pt = paramType
+                    // iterate through all type parameters
+                    while (pt.getActualTypeArguments.head.isInstanceOf[ParameterizedType]) {
+                        pt = pt.getActualTypeArguments.head.asInstanceOf[ParameterizedType]
+                        genericTypes += pt.getRawType.asInstanceOf[Class[_]]
+                    }
+                    // lastly add non-typed param
+                    genericTypes += pt.getActualTypeArguments.head.asInstanceOf[Class[_]]
+
+                    constructorValues += invokeParameter(paramAnnotation, rawType, resolverParam, Some(genericTypes.toSeq))
                 }
         }
         constructorValues.toList
     }
 
     def invokeParameter[P: ClassManifest](paramAnnotation: Option[java.lang.annotation.Annotation], paramType: Class[_],
-                                         resolverParam: P, genericType: Option[Class[_]] = None): Any = {
+                                          resolverParam: P, genericTypes: Option[Seq[Class[_]]] = None): Any = {
         // if annotated, easy to find resolver
         if (paramAnnotation.isDefined && paramAnnotation.get.isInstanceOf[Named]) {
             val namedAnno = paramAnnotation.get.asInstanceOf[Named]
@@ -58,7 +66,7 @@ private[executor] object Injector {
         }
         // if not, try to load resolver based on type
         else {
-            val className = if (genericType.isDefined) specifyName(paramType, genericType.get) else specifyName(paramType)
+            val className = if (genericTypes.isDefined) specifyName(paramType, genericTypes.get) else specifyName(paramType)
 
             val resolver: Class[Resolver[_, P]] = ClassResolver.resolveResolverClass(
                 className,
@@ -73,8 +81,13 @@ private[executor] object Injector {
         clazz.getSimpleName + "Resolver"
     }
 
-    private def specifyName(rawType: Class[_], genType: Class[_]) = {
-        rawType.getSimpleName + genType.getSimpleName + "Resolver"
+    private def specifyName(rawType: Class[_], genTypes: Seq[Class[_]]) = {
+        val sb = new StringBuilder
+        sb append rawType.getSimpleName
+        genTypes.foreach(sb append _.getSimpleName)
+        sb append "Resolver"
+
+        sb.mkString
     }
 }
 
