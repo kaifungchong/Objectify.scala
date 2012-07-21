@@ -2,7 +2,7 @@ package org.objectify.executor
 
 import org.junit.runner.RunWith
 import org.objectify.policies.Policy
-import org.objectify.resolvers.{ListCurrentUserResolver, ListStringResolver, CurrentUserResolver, StringResolver}
+import org.objectify.resolvers._
 import org.objectify.ObjectifySugar
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
@@ -18,6 +18,8 @@ class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar wi
     val currentUserResolverActual = new CurrentUserResolver().apply(null)
     val listStringResolverActual = new ListStringResolver().apply(null)
     val listCurrentUserResolverActual = new ListCurrentUserResolver().apply(null)
+    val optionListStringResolverActual = new OptionListStringResolver().apply(null)
+    val optionListCurrentUserResolverActual = new OptionListCurrentUserResolver().apply(null)
     val resolverParamMock = mock[ObjectifyRequestAdapter]
 
     "Injector" should {
@@ -64,6 +66,11 @@ class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar wi
             assert(Injector.getInjectedResolverParams(manifest[TestPolicyGeneric3].erasure.getConstructors.head, resolverParamMock)
                 .asInstanceOf[List[String]].equals(List(listStringResolverActual, listCurrentUserResolverActual)))
         }
+
+        "resolve multi generic annotation and generic type" in {
+            val params = Injector.getInjectedResolverParams(manifest[TestPolicyGeneric4].erasure.getConstructors.head, resolverParamMock)
+            assert(params.asInstanceOf[List[Option[List[String]]]].equals(List(optionListStringResolverActual, optionListCurrentUserResolverActual)))
+        }
     }
 }
 
@@ -98,10 +105,16 @@ private class TestPolicy5(string1: String,
 private class TestPolicyGeneric1(string: List[String], @Named("CurrentUserResolver") user: String) extends Policy {
     def isAllowed = true
 }
+
 private class TestPolicyGeneric2(string: String, @Named("ListCurrentUserResolver") user: List[String]) extends Policy {
     def isAllowed = true
 }
+
 private class TestPolicyGeneric3(string: List[String], @Named("ListCurrentUserResolver") user: List[String]) extends Policy {
+    def isAllowed = true
+}
+
+private class TestPolicyGeneric4(string: Option[List[String]], @Named("OptionListCurrentUserResolver") user: Option[List[String]]) extends Policy {
     def isAllowed = true
 }
 
