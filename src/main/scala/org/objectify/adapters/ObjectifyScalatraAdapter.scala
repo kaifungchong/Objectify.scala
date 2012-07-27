@@ -22,11 +22,32 @@ trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploa
         super.bootstrap()
 
         /**
+          * Sort wildcards to the top so that there are no route conflicts and that routes are always
+          * added consistently.
+          */
+        val sortedActions = actions.toList.sortBy(_.route.getOrElse(""))(new Ordering[String] {
+            def compare(x: String, y: String) = {
+                if (x.contains(':') && y.contains(':')) {
+                    0
+                }
+                else if (x.contains(':')) {
+                    -1
+                }
+                else if (y.contains(':')) {
+                    1
+                }
+                else {
+                    0
+                }
+            }
+        })
+
+        /**
           * For each action we map to the Scalatra equivalent block parameter
           * though we are still bound to the HttpServletRequest and Response
           * currently.
           */
-        actions.foreach(action => {
+        sortedActions.foreach(action => {
             val scalatraFunction = (action.method match {
                 case Options => options _
                 case Get => get _
