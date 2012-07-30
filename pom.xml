@@ -33,6 +33,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <scala.version>2.9.1</scala.version>
+        <metrics.version>2.1.2</metrics.version>
     </properties>
 
     <dependencies>
@@ -88,6 +89,17 @@
             <groupId>com.twitter</groupId>
             <artifactId>util-logging_${scala.version}</artifactId>
             <version>1.12.13</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yammer.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>${metrics.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yammer.metrics</groupId>
+            <artifactId>metrics-scala_${scala.version}</artifactId>
+            <version>${metrics.version}</version>
         </dependency>
 
         <!-- Test -->

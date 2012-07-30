@@ -27,13 +27,14 @@ trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploa
           */
         val sortedActions = actions.toList.sortBy(_.route.getOrElse(""))(new Ordering[String] {
             def compare(x: String, y: String) = {
-                if (x.contains(':') && y.contains(':')) {
+                val wildcardSymbol = ':'
+                if (x.contains(wildcardSymbol) && y.contains(wildcardSymbol)) {
                     0
                 }
-                else if (x.contains(':')) {
+                else if (x.contains(wildcardSymbol)) {
                     -1
                 }
-                else if (y.contains(':')) {
+                else if (y.contains(wildcardSymbol)) {
                     1
                 }
                 else {
