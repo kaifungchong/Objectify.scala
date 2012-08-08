@@ -148,10 +148,11 @@ case class Actions() extends Iterable[Action] {
                  create: Option[Action] = Some(Action(Post, "create")),
                  edit: Option[Action] = Some(Action(Get, "edit")),
                  update: Option[Action] = Some(Action(Put, "update")),
-                 destroy: Option[Action] = Some(Action(Delete, "destroy"))): Resource = {
+                 destroy: Option[Action] = Some(Action(Delete, "destroy")),
+                 pluralize: Boolean = true): Resource = {
 
         // update the routes if they haven't been set
-        val route = name.pluralize
+        val route = if(pluralize) name.pluralize else name
 
         // Ensure that all the actions have resty routes.
         resolveRouteAndName(index, route, route)
@@ -165,10 +166,46 @@ case class Actions() extends Iterable[Action] {
         new Resource(List(index, show, `new`, create, edit, update, destroy))
     }
 
+    def removeActions(actionsRemove: List[Action]) {
+        for(action <- actionsRemove) {
+            var map = actions(action.method)
+            map = map.filterNot(route => action.route.get.equals(route._1) && action == route._2)
+            actions += (action.method -> map)
+        }
+    }
+
     /**
       * This class is mainly here to help in creating a pretty syntax with chained calls
       */
     class Resource(private val actions: List[Option[Action]]) {
+        def only(actionStrings: String*): Resource = {
+            val actualActions = string2Actions(actionStrings)
+            val actionsToRemove = actions.filterNot(actualActions.contains(_))
+            removeActions(actionsToRemove.map(_.get))
+            this
+        }
+
+        def onlyRoute(actionTuples: (String, String)*): Resource = {
+            val actionStrings = actionTuples.map(_._1)
+            only(actionStrings:_*)
+
+            for ((action, route) <- actionTuples) {
+                val a = string2Actions(Seq(action)).headOption
+                if ( a.isDefined && a.get.isDefined ) {
+                    a.get.get.route = Some(route)
+                }
+            }
+
+            this
+        }
+
+        def except(actionStrings: String*): Resource = {
+            val actualActions = string2Actions(actionStrings)
+            val actionsToRemove = actions.filter(actualActions.contains(_))
+            removeActions(actionsToRemove.map(_.get))
+            this
+        }
+
         def policy(policy: PolicyTuple): Resource = {
             val applyActions = getActionsFromPolicyTuple(policy)
             applyPolicies(applyActions, policy.tuple)
@@ -181,6 +218,12 @@ case class Actions() extends Iterable[Action] {
                 applyPolicies(applyActions, policy.tuple)
             }
             this
+        }
+
+        def ignoreGlobalPolicies() {
+            for(action <- actions) {
+                action.get.ignoreGlobalPolicies = true
+            }
         }
 
         private def getActionsFromPolicyTuple(tuple: PolicyTuple): List[Option[Action]] = {

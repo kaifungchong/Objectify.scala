@@ -110,6 +110,79 @@ class ObjectifyTest extends WordSpec with ShouldMatchers with ObjectifyImplicits
             filteredPols should have size (5)
             filteredPols.flatten should have size (6)
         }
+
+        "shorthand for only certain routes on a resource" in {
+            val objf = new FakeObjectifyFilter
+            objf.actions resource ("cats") only "index"
+
+            val actionNames = for {(method, action) <- objf.actions.actions
+                                   (strAction, realAction) <- action}
+            yield realAction.name
+
+            actionNames should be(List("CatsIndex"))
+        }
+        "shorthand for only certain routes on a resource 2" in {
+            val objf = new FakeObjectifyFilter
+            objf.actions resource ("cats") only ("index", "create")
+
+            val actionNames = for {(method, action) <- objf.actions.actions
+                                   (strAction, realAction) <- action}
+            yield realAction.name
+
+            actionNames should be(List("CatsIndex", "CatsCreate"))
+        }
+        "shorthand for only certain routes on a resource default routes" in {
+            val objf = new FakeObjectifyFilter
+            objf.actions resource ("cats") only ("index", "create", "show")
+
+            val actionNames = for {(method, action) <- objf.actions.actions
+                                   (strAction, realAction) <- action}
+            yield (realAction.name, realAction.route)
+
+            actionNames should be(Map("CatsIndex" -> Some("cats"), "CatsCreate" -> Some("cats"), "CatsShow" -> Some("cats/:id")))
+        }
+        "shorthand for only certain routes on a resource defined routes" in {
+            val objf = new FakeObjectifyFilter
+            objf.actions resource ("cats") onlyRoute ("index" -> "kitty", "create" -> "kitty", "show" -> "kitty")
+
+            val actionNames = for {(method, action) <- objf.actions.actions
+                                   (strAction, realAction) <- action}
+            yield (realAction.name, realAction.route)
+
+            actionNames should be(Map("CatsIndex" -> Some("kitty"), "CatsCreate" -> Some("kitty"), "CatsShow" -> Some("kitty")))
+        }
+
+        "shorthand for except certain routes on a resource" in {
+            val objf = new FakeObjectifyFilter
+            objf.actions resource ("cats") except "index"
+
+            val actionNames = for {(method, action) <- objf.actions.actions
+                                   (strAction, realAction) <- action}
+            yield realAction.name
+
+            actionNames should have size(6)
+        }
+        "shorthand for except certain routes on a resource 2" in {
+            val objf = new FakeObjectifyFilter
+            objf.actions resource ("cats") except ("index", "create")
+
+            val actionNames = for {(method, action) <- objf.actions.actions
+                                   (strAction, realAction) <- action}
+            yield realAction.name
+
+            actionNames should have size(5)
+        }
+        "shorthand for except certain routes on a resource default routes" in {
+            val objf = new FakeObjectifyFilter
+            objf.actions resource ("cats") except ("index", "create", "show")
+
+            val actionNames = for {(method, action) <- objf.actions.actions
+                                   (strAction, realAction) <- action}
+            yield (realAction.name, realAction.route)
+
+            actionNames should be(Map("CatsEdit" -> Some("cats/:id/edit"),
+                "CatsDestroy" -> Some("cats/:id"), "CatsNew" -> Some("cats/new"), "CatsUpdate" -> Some("cats/:id")))
+        }
     }
 }
 
