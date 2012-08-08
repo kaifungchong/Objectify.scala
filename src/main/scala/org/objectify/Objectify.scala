@@ -20,11 +20,16 @@ case class Objectify(defaults: Defaults = Defaults(), actions: Actions = Actions
     def execute(action: Action, requestAdapter: ObjectifyRequestAdapter): ObjectifyResponse[_] = {
         val pipeline = new ObjectifyPipeline(this)
         val start = System.currentTimeMillis()
-        val response = pipeline.handleRequest(action, requestAdapter)
-        logger.info("Handled request for [%s] successfully in [%sms].".format(action, (System.currentTimeMillis() - start)))
-
-        response
+        try {
+            pipeline.handleRequest(action, requestAdapter)
+        }
+        finally {
+            // want to get a logging statement even if request throws exception
+            val requestTime = System.currentTimeMillis() - start
+            logger.info("Request [%s - %s] took [%sms] for action [%s]."
+                .format(requestAdapter.getHttpMethod, requestAdapter.getPath, requestTime, action))
+        }
     }
 
-    var postServiceHook = (serviceResult:Any, responder: ServiceResponder[_,_]) => {}
+    var postServiceHook = (serviceResult: Any, responder: ServiceResponder[_, _]) => {}
 }
