@@ -220,10 +220,20 @@ case class Actions() extends Iterable[Action] {
             this
         }
 
-        def ignoreGlobalPolicies() {
+        def ignoreGlobalPolicies(): Resource = {
             for(action <- actions) {
                 action.get.ignoreGlobalPolicies = true
             }
+            this
+        }
+
+        def ignoreGlobalPoliciesOnly(actionStrings: String*): Resource = {
+            val actualActions = string2Actions(actionStrings)
+            for(action <- actualActions) {
+                action.get.ignoreGlobalPolicies = true
+            }
+
+            this
         }
 
         private def getActionsFromPolicyTuple(tuple: PolicyTuple): List[Option[Action]] = {
