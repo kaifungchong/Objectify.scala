@@ -25,8 +25,13 @@
         <repository>
             <id>matygo</id>
             <name>Matygo Releases</name>
-            <url>http://office.matygo.com:8081/nexus/content/repositories/matygo/</url>
+            <url>http://maven.learndot.com/content/repositories/matygo</url>
         </repository>
+        <snapshotRepository>
+            <id>matygo</id>
+            <name>Matygo Releases</name>
+            <url>http://maven.learndot.com/content/repositories/matygo-snapshot</url>
+        </snapshotRepository>
     </distributionManagement>
 
     <properties>
