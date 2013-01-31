@@ -59,22 +59,10 @@ class ObjectifyScalatraAdapterTest
                     body should include("show 12")
                 }
             }
-            "get pictures new" in {
-                get("/pictures/new") {
-                    status should equal(200)
-                    body should include("new")
-                }
-            }
             "post pictures create" in {
                 post("/pictures") {
                     status should equal(200)
                     body should include("create")
-                }
-            }
-            "get pictures edit" in {
-                get("/pictures/12/edit") {
-                    status should equal(200)
-                    body should include("edit")
                 }
             }
             "put pictures update" in {

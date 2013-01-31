@@ -27,7 +27,7 @@ class ObjectifyTest extends WordSpec with ShouldMatchers with ObjectifyImplicits
                                 (strAction, realAction) <- action}
             yield realAction.policies.get.head._1
 
-            policies should have size (7)
+            policies should have size (5)
             policies.head should be(tuple._1)
         }
         "apply policy to only given actions" in {
@@ -51,7 +51,7 @@ class ObjectifyTest extends WordSpec with ShouldMatchers with ObjectifyImplicits
                                 (strAction, realAction) <- action}
             yield realAction.policies.map(_.head._1)
 
-            policies.flatten should have size (6)
+            policies.flatten should have size (4)
             policies.head.get should be(tuple._1)
         }
         "apply policies to all actions" in {
@@ -64,8 +64,8 @@ class ObjectifyTest extends WordSpec with ShouldMatchers with ObjectifyImplicits
                                 (strAction, realAction) <- action}
             yield realAction.policies.get.keys
 
-            policies should have size (7)
-            policies.flatten should have size (14)
+            policies should have size (5)
+            policies.flatten should have size (10)
             policies.head should equal(Set(tuple1._1, tuple2._1))
         }
         "apply policies to all actions and only actions" in {
@@ -79,8 +79,8 @@ class ObjectifyTest extends WordSpec with ShouldMatchers with ObjectifyImplicits
             yield realAction.policies.map(_.keys)
 
             val filteredPols = policies.flatten
-            filteredPols should have size (7)
-            filteredPols.flatten should have size (9)
+            filteredPols should have size (5)
+            filteredPols.flatten should have size (7)
         }
         "apply policies to all actions and except actions" in {
             val objf = new FakeObjectifyFilter
@@ -93,8 +93,8 @@ class ObjectifyTest extends WordSpec with ShouldMatchers with ObjectifyImplicits
             yield realAction.policies.map(_.keys)
 
             val filteredPols = policies.flatten
-            filteredPols should have size (7)
-            filteredPols.flatten should have size (12)
+            filteredPols should have size (5)
+            filteredPols.flatten should have size (8)
         }
         "apply policies to only actions and except actions" in {
             val objf = new FakeObjectifyFilter
@@ -107,8 +107,8 @@ class ObjectifyTest extends WordSpec with ShouldMatchers with ObjectifyImplicits
             yield realAction.policies.map(_.keys)
 
             val filteredPols = policies.flatten
-            filteredPols should have size (5)
-            filteredPols.flatten should have size (6)
+            filteredPols should have size (3)
+            filteredPols.flatten should have size (4)
         }
 
         "shorthand for only certain routes on a resource" in {
@@ -160,7 +160,7 @@ class ObjectifyTest extends WordSpec with ShouldMatchers with ObjectifyImplicits
                                    (strAction, realAction) <- action}
             yield realAction.name
 
-            actionNames should have size(6)
+            actionNames should have size(4)
         }
         "shorthand for except certain routes on a resource 2" in {
             val objf = new FakeObjectifyFilter
@@ -170,7 +170,7 @@ class ObjectifyTest extends WordSpec with ShouldMatchers with ObjectifyImplicits
                                    (strAction, realAction) <- action}
             yield realAction.name
 
-            actionNames should have size(5)
+            actionNames should have size(3)
         }
         "shorthand for except certain routes on a resource default routes" in {
             val objf = new FakeObjectifyFilter
@@ -180,8 +180,7 @@ class ObjectifyTest extends WordSpec with ShouldMatchers with ObjectifyImplicits
                                    (strAction, realAction) <- action}
             yield (realAction.name, realAction.route)
 
-            actionNames should be(Map("CatsEdit" -> Some("cats/:id/edit"),
-                "CatsDestroy" -> Some("cats/:id"), "CatsNew" -> Some("cats/new"), "CatsUpdate" -> Some("cats/:id")))
+            actionNames should be(Map("CatsDestroy" -> Some("cats/:id"), "CatsUpdate" -> Some("cats/:id")))
         }
     }
 }

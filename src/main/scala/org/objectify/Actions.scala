@@ -134,9 +134,7 @@ case class Actions() extends Iterable[Action] {
       *
       * GET 	/#{name} 		#{name}IndexService
       * GET 	/#{name}/:id 	#{name}ShowService
-      * GET 	/#{name}/new 	#{name}NewService
       * POST 	/#{name} 		#{name}CreationService
-      * GET 	/#{name}/edit 	#{name}EditService
       * PUT 	/#{name}/:id	#{name}UpdateService
       * DELETE 	/#{name}/:id 	#{name}DestructionService
       */
@@ -144,9 +142,7 @@ case class Actions() extends Iterable[Action] {
     def resource(name: String,
                  index: Option[Action] = Some(Action(Get, "index")),
                  show: Option[Action] = Some(Action(Get, "show")),
-                 `new`: Option[Action] = Some(Action(Get, "new")),
                  create: Option[Action] = Some(Action(Post, "create")),
-                 edit: Option[Action] = Some(Action(Get, "edit")),
                  update: Option[Action] = Some(Action(Put, "update")),
                  destroy: Option[Action] = Some(Action(Delete, "destroy")),
                  pluralize: Boolean = true): Resource = {
@@ -157,13 +153,11 @@ case class Actions() extends Iterable[Action] {
         // Ensure that all the actions have resty routes.
         resolveRouteAndName(index, route, route)
         resolveRouteAndName(show, route, route + "/:id")
-        resolveRouteAndName(`new`, route, route + "/new")
         resolveRouteAndName(create, route, route)
-        resolveRouteAndName(edit, route, route + "/:id/edit")
         resolveRouteAndName(update, route, route + "/:id")
         resolveRouteAndName(destroy, route, route + "/:id")
 
-        new Resource(List(index, show, `new`, create, edit, update, destroy))
+        new Resource(List(index, show, create, update, destroy))
     }
 
     def removeActions(actionsRemove: List[Action]) {
