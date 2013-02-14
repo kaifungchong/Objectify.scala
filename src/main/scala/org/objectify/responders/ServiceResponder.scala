@@ -9,6 +9,7 @@ import org.objectify.exceptions.ConfigurationException
   */
 abstract class ServiceResponder[T, P: Manifest] {
     var status:Option[Int] = None
+    var contentType:Option[String] = None
 
     final def applyAny(serviceResult: Any): T = {
         if (serviceResult != null && serviceResult.isInstanceOf[P]) {

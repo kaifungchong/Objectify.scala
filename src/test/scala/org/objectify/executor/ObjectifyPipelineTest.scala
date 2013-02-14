@@ -56,7 +56,7 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
             val response = pipeline.handleRequest(action.get, req)
 
             // verify it worked
-            response.getSerializedEntity should equal(new BadPolicyResponder()())
+            response.entity should equal(new BadPolicyResponder()())
         }
 
         "execute policies pass with resolver" in {
@@ -73,7 +73,7 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
             val response = pipeline.handleRequest(action.get, req)
 
             // verify it worked
-            response.getSerializedEntity should equal("index")
+            response.entity should equal("index")
         }
 
         "execute global and local policies" in {
@@ -89,7 +89,7 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
             val response = pipeline.handleRequest(action.get, req)
 
             // verify it worked
-            response.getSerializedEntity should equal(new BadPolicyResponder()())
+            response.entity should equal(new BadPolicyResponder()())
         }
 
         "execute global and local policies 2" in {
@@ -105,7 +105,7 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
             val response = pipeline.handleRequest(action.get, req)
 
             // verify it worked
-            response.getSerializedEntity should equal(new BadPolicyResponder()())
+            response.entity should equal(new BadPolicyResponder()())
         }
 
         "execute global and default policies" in {
@@ -120,7 +120,7 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
             val response = pipeline.handleRequest(action.get, req)
 
             // verify it worked
-            response.getSerializedEntity should equal(new BadPolicyResponder()())
+            response.entity should equal(new BadPolicyResponder()())
         }
 
         "ignore global and execute default policies" in {
@@ -136,7 +136,7 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
             val response = pipeline.handleRequest(action.get, req)
 
             // verify it worked
-            response.getSerializedEntity should equal("index")
+            response.entity should equal("index")
         }
 
         "ignore global and execute local policies" in {
@@ -152,7 +152,7 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
             val response = pipeline.handleRequest(action.get, req)
 
             // verify it worked
-            response.getSerializedEntity should equal("index")
+            response.entity should equal("index")
         }
 
         "execute post service hook true" in {
@@ -170,7 +170,7 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
 
             // verify it worked
             response.status should be(422)
-            response.getSerializedEntity should equal("null")
+            response.entity should equal("null")
         }
 
         "execute post service hook false" in {
@@ -188,7 +188,7 @@ class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with Mockit
 
             // verify it worked
             response.status should be(200)
-            response.getSerializedEntity should equal("index")
+            response.entity should equal("index")
         }
     }
 }

@@ -5,6 +5,7 @@ package org.objectify.responders
   */
 trait PolicyResponder[T] {
     var status:Option[Int] = None
+    var contentType:Option[String] = None
 
     def apply(): T
 }

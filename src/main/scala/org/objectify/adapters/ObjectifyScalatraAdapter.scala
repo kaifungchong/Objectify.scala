@@ -11,6 +11,7 @@ import org.scalatra.servlet.ServletBase
 import org.objectify.exceptions.{ObjectifyExceptionWithCause, ObjectifyException, BadRequestException}
 import org.scalatra.fileupload.FileUploadSupport
 import org.scalatra.CookieSupport
+import org.objectify.resolvers.ClassResolver
 
 trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploadSupport with CookieSupport {
 
@@ -60,12 +61,11 @@ trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploa
 
             scalatraFunction("/" + action.route.getOrElse(throw new BadRequestException("No Route Found"))) {
                 // wrap HttpServletRequest in adapter and get ObjectifyResponse
-                val objectifyResponse = execute(action, new ScalatraRequestAdapter(request, response, params.toMap, Some(fileParams)))
+                val objectifyResponse = execute(action,
+                    new ScalatraRequestAdapter(request, response, params.toMap, Some(fileParams)))
 
-                // populate HttpServletResponse with ObjectifyResponse fields
-                response.setContentType(objectifyResponse.contentType)
-                response.setStatus(objectifyResponse.status)
-                response.getWriter.print(objectifyResponse.getSerializedEntity)
+                // find appropriate response adapter and serialize the response
+                locateResponseAdapter(objectifyResponse).serializeResponseAny(request, response, objectifyResponse)
             }
         })
     }

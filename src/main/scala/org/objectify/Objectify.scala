@@ -1,8 +1,9 @@
 package org.objectify
 
-import adapters.ObjectifyRequestAdapter
+import adapters.{ObjectifyResponseAdapter, ObjectifyRequestAdapter}
 import executor.{ObjectifyResponse, ObjectifyPipeline}
 import com.twitter.logging.Logger
+import resolvers.ClassResolver
 import responders.ServiceResponder
 
 case class Objectify(defaults: Defaults = Defaults(), actions: Actions = Actions())
@@ -29,6 +30,10 @@ case class Objectify(defaults: Defaults = Defaults(), actions: Actions = Actions
             logger.info("Request [%s - %s] took [%sms] for action [%s]."
                 .format(requestAdapter.getHttpMethod, requestAdapter.getPath, requestTime, action))
         }
+    }
+
+    def locateResponseAdapter(response: ObjectifyResponse[_]): ObjectifyResponseAdapter[_] = {
+        ClassResolver.resolveResponseAdapter(response.getClass).newInstance()
     }
 
     var postServiceHook = (serviceResult: Any, responder: ServiceResponder[_, _]) => {}

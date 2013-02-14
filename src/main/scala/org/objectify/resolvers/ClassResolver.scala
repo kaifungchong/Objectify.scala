@@ -15,6 +15,7 @@ import java.io.FileNotFoundException
 import yaml.YAMLFormat
 import com.twitter.logging.Logger
 import collection.immutable.TreeSet
+import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 
 /**
   * This class is responsible for loading all the pertinent classes that need to be resolved or injected,
@@ -48,21 +49,29 @@ object ClassResolver {
     }
 
     def resolveResponseAdapter[T](paramType: Class[T]): Class[ObjectifyResponseAdapter[T]] = {
-        resolveClassByTypes("serializeResponse", classOf[String], paramType, responseAdapters).asInstanceOf[Class[ObjectifyResponseAdapter[T]]]
+        val paramTypes = Seq(classOf[HttpServletRequest], classOf[HttpServletResponse], paramType)
+        resolveClassByTypes("serializeResponse", classOf[Unit], paramTypes, responseAdapters)
+            .asInstanceOf[Class[ObjectifyResponseAdapter[T]]]
     }
 
-    private def resolveClassByTypes[T, R, P](methodName: String, returnType: Class[R], paramType: Class[P], set: Set[Class[T]]): Class[T] = {
-        set.find(target => target.getMethod(methodName, paramType).getReturnType.equals(returnType))
-            .getOrElse(throw new ConfigurationException("No class matching method [%s] param type [%s] return type [%s]".format(methodName, paramType, returnType)))
+    private def resolveClassByTypes[T, R, P](methodName: String, returnType: Class[R], paramTypes: Seq[Class[_]],
+                                             set: Set[Class[T]]): Class[T] = {
+        set.find(target => target.getMethod(methodName, paramTypes: _*).getReturnType.equals(returnType)).getOrElse(
+            throw new ConfigurationException("No class matching method [%s] param type [%s] return type [%s]"
+                .format(methodName, paramTypes, returnType)))
     }
 
     private def resolveClass[T](className: String, set: Set[Class[T]]): Class[T] = {
-        set.find(_.getSimpleName.matches(className)).getOrElse(throw new ConfigurationException("No class matching the name: " + className))
+        set.find(_.getSimpleName.matches(className)).getOrElse(
+            throw new ConfigurationException("No class matching the name: " + className))
     }
 
-    private def resolveClassWithReturn[T, R, P](className: String, methodName: String, returnType: Class[R], paramType: Class[P], set: Set[Class[T]]): Class[T] = {
-        set.find(target => target.getSimpleName.matches(className) && target.getMethod(methodName, paramType).getReturnType.equals(returnType))
-            .getOrElse(throw new ConfigurationException("No class matching name [%s] method [%s] param type [%s] return type [%s]".format(className, methodName, paramType, returnType)))
+    private def resolveClassWithReturn[T, R, P](className: String, methodName: String, returnType: Class[R],
+                                                paramType: Class[P], set: Set[Class[T]]): Class[T] = {
+        set.find(target =>
+            target.getSimpleName.matches(className) && target.getMethod(methodName, paramType).getReturnType.equals(returnType))
+            .getOrElse(throw new ConfigurationException("No class matching name [%s] method [%s] param type [%s] return type [%s]"
+                .format(className, methodName, paramType, returnType)))
     }
 
     private def subClassesOf[T](klass: Class[T]): Set[Class[T]] = {
