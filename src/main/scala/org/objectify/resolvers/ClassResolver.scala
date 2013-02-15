@@ -14,8 +14,11 @@ import java.net.URL
 import java.io.FileNotFoundException
 import yaml.YAMLFormat
 import com.twitter.logging.Logger
-import collection.immutable.TreeSet
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
+import scala.collection.JavaConverters._
+import javax.management.remote.rmi._RMIConnection_Stub
+import org.objectify.executor.ObjectifyResponse
+import java.lang.reflect.ParameterizedType
 
 /**
   * This class is responsible for loading all the pertinent classes that need to be resolved or injected,
@@ -48,15 +51,25 @@ object ClassResolver {
         resolveClassWithReturn(name, "apply", returnType, paramType, resolvers).asInstanceOf[Class[Resolver[_, P]]]
     }
 
-    def resolveResponseAdapter[T](paramType: Class[T]): Class[ObjectifyResponseAdapter[T]] = {
-        val paramTypes = Seq(classOf[HttpServletRequest], classOf[HttpServletResponse], paramType)
-        resolveClassByTypes("serializeResponse", classOf[Unit], paramTypes, responseAdapters)
+    def resolveResponseAdapter[T](genericType: Class[T]): Class[ObjectifyResponseAdapter[T]] = {
+        val paramTypes = Seq(classOf[HttpServletRequest], classOf[HttpServletResponse], classOf[ObjectifyResponse[T]])
+        resolveClassByTypes("serializeResponse", classOf[Unit], paramTypes, genericType, responseAdapters)
             .asInstanceOf[Class[ObjectifyResponseAdapter[T]]]
     }
 
     private def resolveClassByTypes[T, R, P](methodName: String, returnType: Class[R], paramTypes: Seq[Class[_]],
-                                             set: Set[Class[T]]): Class[T] = {
-        set.find(target => target.getMethod(methodName, paramTypes: _*).getReturnType.equals(returnType)).getOrElse(
+                                             genericType: Class[_], set: Set[Class[T]]): Class[T] = {
+        set.find(target => {
+            val method = target.getMethod(methodName, paramTypes: _*)
+
+            // make sure return types match
+            method.getReturnType.equals(returnType) &&
+            method.getGenericParameterTypes.exists(p => {
+                // make sure generic parameter of ObjectifyResponse matches
+                p.isInstanceOf[ParameterizedType] &&
+                    p.asInstanceOf[ParameterizedType].getActualTypeArguments.exists(_.equals(genericType))
+            })
+        }).getOrElse(
             throw new ConfigurationException("No class matching method [%s] param type [%s] return type [%s]"
                 .format(methodName, paramTypes, returnType)))
     }

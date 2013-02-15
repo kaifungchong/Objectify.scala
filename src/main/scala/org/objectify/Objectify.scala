@@ -33,7 +33,7 @@ case class Objectify(defaults: Defaults = Defaults(), actions: Actions = Actions
     }
 
     def locateResponseAdapter(response: ObjectifyResponse[_]): ObjectifyResponseAdapter[_] = {
-        ClassResolver.resolveResponseAdapter(response.getClass).newInstance()
+        ClassResolver.resolveResponseAdapter(response.entity.getClass).newInstance()
     }
 
     var postServiceHook = (serviceResult: Any, responder: ServiceResponder[_, _]) => {}
