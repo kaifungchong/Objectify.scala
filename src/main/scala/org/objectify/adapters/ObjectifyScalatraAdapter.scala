@@ -7,13 +7,11 @@ import org.objectify.HttpMethod.Patch
 import org.objectify.HttpMethod.Post
 import org.objectify.HttpMethod.Put
 import org.objectify.Objectify
-import org.scalatra.servlet.ServletBase
+import org.scalatra.servlet.{RichResponse, RichRequest, ServletBase}
 import org.objectify.exceptions.{ObjectifyExceptionWithCause, ObjectifyException, BadRequestException}
 import org.scalatra.fileupload.FileUploadSupport
-import org.scalatra.CookieSupport
-import org.objectify.resolvers.ClassResolver
 
-trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploadSupport with CookieSupport {
+trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploadSupport {
 
     /**
       * Decorates the default bootstrap which has the configuration
@@ -62,7 +60,7 @@ trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploa
             scalatraFunction("/" + action.route.getOrElse(throw new BadRequestException("No Route Found"))) {
                 // wrap HttpServletRequest in adapter and get ObjectifyResponse
                 val objectifyResponse = execute(action,
-                    new ScalatraRequestAdapter(request, response, params.toMap, Some(fileParams)))
+                    new ScalatraRequestAdapter(RichRequest(request), RichResponse(response), params.toMap, Some(fileParams)))
 
                 // find appropriate response adapter and serialize the response
                 locateResponseAdapter(objectifyResponse).serializeResponseAny(request, response, objectifyResponse)
