@@ -135,6 +135,30 @@ class GettingStarted extends ObjectifyScalatraAdapter with ScalatraFilter {
 
 Once, you've defined this filter you will also have to add it to your Scalatra configuration and you're all set!
 
+#### Suggested File Structure
+
+Objectify takes the convention over configuration approach and we suggest the
+following file structure for the above examples:
+
+```
+├── io
+├── service
+│   ├── policies
+│   │   └── TruePolicy.scala
+│   └── services
+│       └── numbers
+│           └── NumbersIndexService.scala
+└── ui
+    └── responders
+        ├── TruePolicyResponder.scala
+        └── numbers
+            └── NumbersIndexResponder.scala
+```
+
+## Introducing Resolvers
+
+_todo_
+
 ## Advanced Examples
 
 _todo_
