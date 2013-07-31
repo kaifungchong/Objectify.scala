@@ -79,15 +79,59 @@ Then add it to your pom file with the following:
 
 Let's get started building a basic Objectify application.
 
-#### Create a filter
-
 #### Create a policy
+
+A simple policy that always returns true.
+
+```scala
+class TruePolicy extends Policy {
+    def isAllowed = true
+}
+```
+
+And a responder that should never be called.
+
+```scala
+class TruePolicyResponder extends PolicyResponder[String] {
+    def apply() = "Epic Fail!"
+}
+```
 
 #### Create a service
 
+Then we can create a simple service that just returns a list of numbers.
+
+```scala
+class NumbersIndexService extends Service[List[Int]] {
+    def apply() = {
+        List(1, 2, 3, 4, 5)
+    }
+}
+```
+
 #### Create a responder
 
+We also create a responder that corresponds to the above service, taking a list of numbers and serializing them to a string.
+
+```scala
+class NumberIndexResponder extends ServiceResponder[String, List[Int]] {
+    def apply(serviceResult: List[Int]) = {
+        serviceResult.toString
+    }
+}
+```
+
 #### Define some routes
+
+The filter is going to be where you define all of your routes.
+
+```scala
+class GettingStarted extends ObjectifyScalatraAdapter with ScalatraFilter {
+    actions resource ("number") onlyRoute ("index" -> "numbers") policy ~:[TruePolicy] -> ~:[TruePolicyResponder]
+}
+```
+
+Once, you've defined this filter you will also have to add it to your Scalatra configuration and you're all set!
 
 ## Advanced Examples
 
