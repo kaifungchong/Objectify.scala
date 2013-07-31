@@ -241,11 +241,11 @@ class NumbersShowService(@Named("IdResolver") id: Int, hostString: HostNameStrin
 }
 ```
 
-Note the update route definition should like this:
+Note the updated route definition should like this:
 
 ```scala
 class GettingStarted extends ObjectifyScalatraAdapter with ScalatraFilter {
-    actions resource ("number") onlyRoute ("index" -> "numbers", "show" -> "numbers/:id") policy ~:[FirstPolicy] -> ~:[FirstPolicyResponder]
+    actions resource ("number") onlyRoute ("index" -> "numbers", "show" -> "numbers/:id") policy ~:[TruePolicy] -> ~:[TruePolicyResponder]
 }
 ```
 
