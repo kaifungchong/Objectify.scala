@@ -253,7 +253,6 @@ class GettingStarted extends ObjectifyScalatraAdapter with ScalatraFilter {
 And file structure
 
 ```
-.
 ├── io
 ├── service
 │   ├── policies
