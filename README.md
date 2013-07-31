@@ -135,7 +135,7 @@ class GettingStarted extends ObjectifyScalatraAdapter with ScalatraFilter {
 
 Once, you've defined this filter you will also have to add it to your Scalatra configuration and you're all set!
 
-#### Suggested File Structure
+#### Suggested file structure
 
 Objectify takes the convention over configuration approach and we suggest the
 following file structure for the above examples:
@@ -157,7 +157,89 @@ following file structure for the above examples:
 
 ## Introducing Resolvers
 
-_todo_
+#### Using the built-in resolvers
+
+In this example we're going to add some more actions to the above example. We'll add a show service, that expects
+a path in the format `/numbers/:id`, and a corresponding responder. It's using the built-in resolvers
+`IdResolver` and `HttpServletResolver`.
+
+```scala
+class NumbersShowService(@Named("IdResolver") id: Int, req: HttpServletRequest) extends Service[Int] {
+    def apply() = {
+        if (req.getServerName.equals("localhost")) {
+            100
+        }
+        else {
+            id
+        }
+    }
+}
+
+class NumberShowResponder extends ServiceResponder[String, Int] {
+    def apply(serviceResult: Int) = {
+        serviceResult.toString
+    }
+}
+```
+
+This example demonstrates the two ways in which to specify Objectify resolvers. The easiest way is by type: if the resolver
+has a fairly unique type -- e.g. `HttpServletRequest` -- the value will be injected by type. However, if it's a fairly
+common type like `Int`, you'll need to specify the resolver by name, using the `javax.inject.Named` annotation.
+
+#### Using the custom resolvers
+
+Eventually you'll need to create your own resolver. To build on the above, let's parse our the server name in its own
+resolver class:
+
+```scala
+class HostNameResolver extends Resolver[String, ObjectifyRequestAdapter] {
+    def apply(param: ObjectifyRequestAdapter) = {
+        param.getRequest.getServerName
+    }
+}
+```
+
+As you can see the resolver takes an `ObjectifyRequestAdapter` and gleans some sort of information from it. This is the
+typical way in which resolvers should be used.
+
+Here's what our updated service will look like:
+
+```scala
+class NumbersShowService(@Named("IdResolver") id: Int, @Named("HostNameResolver") hostname: String) extends Service[Int] {
+    def apply() = {
+        if (hostname.equals("localhost")) {
+            100
+        }
+        else {
+            id
+        }
+    }
+}
+```
+
+Again, note that if we had a more specific type, we wouldn't need that `@Named` annotation. Here's what that might look
+like:
+
+```scala
+case class HostNameString(hostname: String)
+
+class HostNameResolver extends Resolver[HostNameString, ObjectifyRequestAdapter] {
+    def apply(param: ObjectifyRequestAdapter) = {
+        HostNameString(param.getRequest.getServerName)
+    }
+}
+
+class NumbersShowService(@Named("IdResolver") id: Int, hostString: HostNameString) extends Service[Int] {
+    def apply() = {
+        if (hostString.hostname.equals("localhost")) {
+            100
+        }
+        else {
+            id
+        }
+    }
+}
+```
 
 ## Advanced Examples
 
