@@ -2,7 +2,7 @@
 
 #### Objectify is a light-weight web framework that allows you to structure your appication by providing policy management and dependency injection.
 
-Here's a quick presentation to give you an idea of what it's all about: [Scala Meetup - Objectify](http://www.slideshare.net/artgon/scala-meetup-objectify-15072182)
+Here's a quick introduction I gave at a Scala meetup for an idea of what it's all about: [Scala Meetup - Objectify](http://www.slideshare.net/artgon/scala-meetup-objectify-15072182)
 
 Note: Currently the only included adapter is for [Scalatra](http://www.scalatra.org/), so feel free to add more! :)
 
@@ -21,9 +21,77 @@ are request-scoped objects.
 
 ## How does it work?
 
+Each request and response is broken down into *Resolvers*, *Policies*, *Services* and *Reponders*. The lifecycle of a
+typical request would first go through your web container and then to Objectify:
+
+1. Verify policies
+2. If they are not satisfied, execute a policy responder
+3. If they are satisfied, execute a service
+4. Pass the service result to a service responder
+5. Return response to web container
+
+It's quite simple but creates powerful constructs that can be used to succinctly break down your application into
+its various parts.
+
+The resolvers are essentially only there for dependency injection and are populated into policies, resolvers and
+responders via the constructor.
+
+#### Policies
+
+Policies are mapped to policy responders in the configurations. They examine the request and simply return a true or
+false depending what their purpose is. If they return false, then the policy responder is executed.
+
+#### Services
+
+Services do the heavy lifting in your application. They use resolvers to inject whatever necessary request information
+they need and complete some unit of work, returning a result. This result is later passed on to the mapped responder.
+
+#### Responders
+
+Responders are only responsible for taking a result from a service or policy and then serializing it into some sort of
+appropriate result. If your application is just an API that returns JSON, then this responder would be responsible for
+converting a Scala object result to its JSON respresentation.
+
+#### Resolvers
+
+Resolvers help Objectify figure out how to inject appropriate values into the contructors of Policies, Services and
+Responders. For example if you just want to parse a "userId" field from a body of JSON, you would make an appropriate
+resolver that does this extraction and your service would simple take a variable that's populated at construction time.
+This is great for code re-use and single-responsibility.
+
+## Installation
+
+The first step to getting started is installing the library. After cloning, you can install it via:
+
+`mvn install`
+
+Then add it to your pom file with the following:
+
+```xml
+<dependency>
+    <groupId>org.objectify</groupId>
+    <artifactId>objectify-scala</artifactId>
+    <version>0.0.14</version>
+</dependency>
+```
+
 ## Getting started
 
+Let's get started building a basic Objectify application.
+
+#### Create a filter
+
+#### Create a policy
+
+#### Create a service
+
+#### Create a responder
+
+#### Define some routes
+
 ## Advanced Examples
+
+_todo_
 
 
 
