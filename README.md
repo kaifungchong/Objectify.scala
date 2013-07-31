@@ -1,6 +1,6 @@
 # Objectify for Scala
 
-#### Objectify is a light-weight web framework that helps you to structure your application by providing policy management and dependency injection.
+#### Objectify is a light-weight web framework that helps you structure your application by providing policy management and dependency injection.
 
 Here's a quick introduction I gave at a Scala meetup for an idea of what it's all about: [Scala Meetup - Objectify](http://www.slideshare.net/artgon/scala-meetup-objectify-15072182)
 
