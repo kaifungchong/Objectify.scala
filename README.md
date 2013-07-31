@@ -149,6 +149,7 @@ following file structure for the above examples:
 │       └── numbers
 │           └── NumbersIndexService.scala
 └── ui
+    ├── GettingStarted.scala
     └── responders
         ├── TruePolicyResponder.scala
         └── numbers
@@ -247,6 +248,29 @@ Note the updated route definition should like this:
 class GettingStarted extends ObjectifyScalatraAdapter with ScalatraFilter {
     actions resource ("number") onlyRoute ("index" -> "numbers", "show" -> "numbers/:id") policy ~:[TruePolicy] -> ~:[TruePolicyResponder]
 }
+```
+
+And file structure
+
+```
+.
+├── io
+├── service
+│   ├── policies
+│   │   └── TruePolicy.scala
+│   └── services
+│       └── numbers
+│           ├── NumbersIndexService.scala
+│           └── NumbersShowService.scala
+└── ui
+    ├── GettingStarted.scala
+    ├── resolvers
+    │   └── HostNameResolver.scala
+    └── responders
+        ├── TruePolicyResponder.scala
+        └── numbers
+            ├── NumbersIndexResponder.scala
+            └── NumbersShowResponder.scala
 ```
 
 ## Advanced Examples
