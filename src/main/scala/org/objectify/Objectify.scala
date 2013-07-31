@@ -6,6 +6,9 @@ import com.twitter.logging.Logger
 import resolvers.ClassResolver
 import responders.ServiceResponder
 
+/**
+  * Main Objectify object for extending with your framework of choice
+  */
 case class Objectify(defaults: Defaults = Defaults(), actions: Actions = Actions())
     extends ObjectifySugar with ObjectifyImplicits {
     private val logger = Logger(classOf[Objectify])
@@ -18,6 +21,12 @@ case class Objectify(defaults: Defaults = Defaults(), actions: Actions = Actions
         actions.bootstrapValidation()
     }
 
+    /**
+      * Execute the request through the pipeline
+      * @param action - the Action to execute
+      * @param requestAdapter - the adapter to handle the request
+      * @return - the response wrapped in an ObjectifyResponse
+      */
     def execute(action: Action, requestAdapter: ObjectifyRequestAdapter): ObjectifyResponse[_] = {
         val pipeline = new ObjectifyPipeline(this)
         val start = System.currentTimeMillis()

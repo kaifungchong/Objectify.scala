@@ -13,6 +13,7 @@ abstract class ServiceResponder[T, P: Manifest] {
 
     final def applyAny(serviceResult: Any): T = {
         if (serviceResult != null && serviceResult.isInstanceOf[P]) {
+            // handle special case for casting booleans between Scala and Java
             if (serviceResult.isInstanceOf[java.lang.Boolean] &&
                 castClass.equals(classOf[Boolean])) {
                 apply(Boolean2boolean(serviceResult.asInstanceOf[java.lang.Boolean]).asInstanceOf[P])

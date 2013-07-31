@@ -15,15 +15,13 @@ import java.io.FileNotFoundException
 import yaml.YAMLFormat
 import com.twitter.logging.Logger
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
-import scala.collection.JavaConverters._
-import javax.management.remote.rmi._RMIConnection_Stub
 import org.objectify.executor.ObjectifyResponse
 import java.lang.reflect.ParameterizedType
 
 /**
-  * This class is responsible for loading all the pertinent classes that need to be resolved or injected,
-  * and caching them.
-  */
+ * This class is responsible for loading all the pertinent classes that need to be resolved or injected,
+ * and caching them.
+ */
 object ClassResolver {
     private val logger = Logger(ClassResolver.getClass)
     private val reflections = new Reflections(new ConfigurationBuilder().setUrls(getScannableUrls)
@@ -64,11 +62,11 @@ object ClassResolver {
 
             // make sure return types match
             method.getReturnType.equals(returnType) &&
-            method.getGenericParameterTypes.exists(p => {
-                // make sure generic parameter of ObjectifyResponse matches
-                p.isInstanceOf[ParameterizedType] &&
-                    p.asInstanceOf[ParameterizedType].getActualTypeArguments.exists(_.equals(genericType))
-            })
+                method.getGenericParameterTypes.exists(p => {
+                    // make sure generic parameter of ObjectifyResponse matches
+                    p.isInstanceOf[ParameterizedType] &&
+                        p.asInstanceOf[ParameterizedType].getActualTypeArguments.exists(_.equals(genericType))
+                })
         }).getOrElse(
             throw new ConfigurationException("No class matching method [%s] param type [%s] return type [%s]"
                 .format(methodName, paramTypes, returnType)))
@@ -84,7 +82,7 @@ object ClassResolver {
         set.find(target =>
             target.getSimpleName.matches(className) && target.getMethod(methodName, paramType).getReturnType.equals(returnType))
             .getOrElse(throw new ConfigurationException("No class matching name [%s] method [%s] param type [%s] return type [%s]"
-                .format(className, methodName, paramType, returnType)))
+            .format(className, methodName, paramType, returnType)))
     }
 
     private def subClassesOf[T](klass: Class[T]): Set[Class[T]] = {
@@ -99,10 +97,10 @@ object ClassResolver {
 
 
     private def getScannableUrls = {
-        /*
-       Load objectify base packages if they exist in the objectify.yml
-       -- if they don't exist, search the entire classpath
-        */
+        /**
+          *  Load objectify base packages if they exist in the objectify.yml
+          *  -- if they don't exist, search the entire classpath
+          */
         val config = try {
             Configuration.loadResource("/objectify.yml", YAMLFormat)
         }

@@ -55,17 +55,20 @@ case class Action(method: HttpMethod,
       * Resolves the service class by either returning the preset service class
       * or find the class based on the name of this action
       *
-      * eg: pictures index => PicturesDeleteService
-      * @return
+      * eg: pictures index => PicturesIndexService
       */
     def resolveServiceClass: Class[_ <: Service[_]] = {
         service.getOrElse(ClassResolver.resolveServiceClass(getSerivceClassName(name)))
     }
 
+    // similar with responders
     def resolveResponderClass: Class[_ <: ServiceResponder[_, _]] = {
         responder.getOrElse(ClassResolver.resolveResponderClass(getResponderClassName(name)))
     }
 
+    /**
+      * Convention over configuration
+      */
     private def getSerivceClassName(name: String) = {
         name + "Service"
     }
@@ -99,6 +102,9 @@ case class Action(method: HttpMethod,
     override def hashCode() = method.hashCode() + name.hashCode
 }
 
+/**
+  * Implicit conversion to policy tuples make route definition much simpler and prettier
+  */
 class PolicyTuple(val tuple: (Class[_ <: Policy], Class[_ <: PolicyResponder[_]])) {
     var onlyStr: List[String] = Nil
     var exceptStr: List[String] = Nil
@@ -138,7 +144,6 @@ case class Actions() extends Iterable[Action] {
       * PUT 	/#{name}/:id	#{name}UpdateService
       * DELETE 	/#{name}/:id 	#{name}DestructionService
       */
-
     def resource(name: String,
                  index: Option[Action] = Some(Action(Get, "index")),
                  show: Option[Action] = Some(Action(Get, "show")),
@@ -148,7 +153,7 @@ case class Actions() extends Iterable[Action] {
                  pluralize: Boolean = true): Resource = {
 
         // update the routes if they haven't been set
-        val route = if(pluralize) name.pluralize else name
+        val route = if (pluralize) name.pluralize else name
 
         // Ensure that all the actions have resty routes.
         resolveRouteAndName(index, route, route)
@@ -161,7 +166,7 @@ case class Actions() extends Iterable[Action] {
     }
 
     def removeActions(actionsRemove: List[Action]) {
-        for(action <- actionsRemove) {
+        for (action <- actionsRemove) {
             var map = actions(action.method)
             map = map.filterNot(route => action.route.get.equals(route._1) && action == route._2)
             actions += (action.method -> map)
@@ -181,11 +186,11 @@ case class Actions() extends Iterable[Action] {
 
         def onlyRoute(actionTuples: (String, String)*): Resource = {
             val actionStrings = actionTuples.map(_._1)
-            only(actionStrings:_*)
+            only(actionStrings: _*)
 
             for ((action, route) <- actionTuples) {
                 val a = string2Actions(Seq(action)).headOption
-                if ( a.isDefined && a.get.isDefined ) {
+                if (a.isDefined && a.get.isDefined) {
                     a.get.get.route = Some(route)
                 }
             }
@@ -215,7 +220,7 @@ case class Actions() extends Iterable[Action] {
         }
 
         def ignoreGlobalPolicies(): Resource = {
-            for(action <- actions) {
+            for (action <- actions) {
                 action.get.ignoreGlobalPolicies = true
             }
             this
@@ -223,7 +228,7 @@ case class Actions() extends Iterable[Action] {
 
         def ignoreGlobalPoliciesOnly(actionStrings: String*): Resource = {
             val actualActions = string2Actions(actionStrings)
-            for(action <- actualActions) {
+            for (action <- actualActions) {
                 action.get.ignoreGlobalPolicies = true
             }
 
