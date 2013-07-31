@@ -114,7 +114,7 @@ class NumbersIndexService extends Service[List[Int]] {
 We also create a responder that corresponds to the above service, taking a list of numbers and serializing them to a string.
 
 ```scala
-class NumberIndexResponder extends ServiceResponder[String, List[Int]] {
+class NumbersIndexResponder extends ServiceResponder[String, List[Int]] {
     def apply(serviceResult: List[Int]) = {
         serviceResult.toString
     }
