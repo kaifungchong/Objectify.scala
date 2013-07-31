@@ -10,13 +10,15 @@ Note: Currently the only included adapter is for [Scalatra](http://www.scalatra.
 
 This framework was inspired by [James Gollick’s](http://jamesgolick.com/) similarly named [Ruby framework](https://github.com/bitlove/objectify).
 
-With Scalatra services were defined all over the place, in various files and shared functionality
-and codification was done via inheritance. The goal of Objectify is to codify how services are
-structured, and how they should function. There is central definition of all paths, policies, responders and
- they are each structured in a very simple way, enforcing the single responsibility for principle for classes
- and creating a separation of concerns.
+When we used Scalatra by itself, services were defined all over the place, in various files and shared functionality
+and codification was done via inheritance. This isn't necessarily Scalatra's fault, it's just something that happens 
+when you use simple frameworks in large applications. It required more structure.
 
-The reason we wanted to add our own dependecy injection is avoid using singleton when generally all we need
+The goal of Objectify is to codify how services are structured, and how they should function. There is a
+central definition of all paths, policies, responders and they are each structured in a very simple way, 
+enforcing the single responsibility for principle for classes, and creating a separation of concerns.
+
+The reason we implemented our own dependecy injection is to avoid using singletons when generally all we need
 are request-scoped objects.
 
 ## How does it work?
