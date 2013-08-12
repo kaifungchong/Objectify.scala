@@ -45,8 +45,8 @@ case class Action(method: HttpMethod,
                   contentType: ContentType = JSON,
                   var route: Option[String] = None,
                   var policies: Option[Map[Class[_ <: Policy], Class[_ <: PolicyResponder[_]]]] = None,
-                  service: Option[Class[_ <: Service[_]]] = None,
-                  responder: Option[Class[_ <: ServiceResponder[_, _]]] = None,
+                  var service: Option[Class[_ <: Service[_]]] = None,
+                  var responder: Option[Class[_ <: ServiceResponder[_, _]]] = None,
                   var ignoreGlobalPolicies: Boolean = false) {
 
     // conditionally set the route
@@ -194,12 +194,21 @@ case class Actions() extends Iterable[Action] {
         }
 
         def onlyRoute(actionTuples: (String, String)*): Resource = {
-            val actionStrings = actionTuples.map(_._1)
+            onlyRouteWithService(actionTuples.map(a => ((a._1, a._2), (None, None))):_*)
+        }
+
+        def onlyRouteWithService(actionTuples: ((String, String),
+            // option service -> service responder for explicit overrides
+            (Option[Class[_ <: Service[_]]], Option[Class[_ <: ServiceResponder[_, _]]]))*): Resource = {
+            val actionStrings = actionTuples.map(_._1._1)
             only(actionStrings: _*)
 
-            for ((action, route) <- actionTuples) {
+            for {((action, route), serviceResponderMapping) <- actionTuples} {
                 val a = string2Actions(Seq(action)).headOption
                 if (a.isDefined && a.get.isDefined) {
+                    if (serviceResponderMapping._1.isDefined) a.get.get.service = serviceResponderMapping._1
+                    if (serviceResponderMapping._2.isDefined) a.get.get.responder = serviceResponderMapping._2
+
                     a.get.get.route = Some(route)
                 }
             }
