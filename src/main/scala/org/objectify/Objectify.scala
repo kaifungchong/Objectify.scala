@@ -14,6 +14,7 @@ import executor.{ObjectifyResponse, ObjectifyPipeline}
 import com.twitter.logging.Logger
 import resolvers.ClassResolver
 import responders.ServiceResponder
+import akka.actor.ActorSystem
 
 /**
   * Main Objectify object for extending with your framework of choice

@@ -21,16 +21,22 @@ import org.objectify.responders.{PicturesIndexResponder, BadPolicyResponder}
 import org.objectify.policies.{AuthenticationPolicy, GoodPolicy}
 import org.objectify.{ContentType, Action, ObjectifySugar}
 import org.objectify.services.{ThrowsUnexpected, Throws403, ThrowsConfig, ThrowsBadRequest}
+import akka.testkit.TestKit
+import akka.actor.ActorSystem
+import akka.dispatch.ExecutionContext
 
 
 /**
   * Testing the Scalatra adapter
   */
 @RunWith(classOf[JUnitRunner])
-class ObjectifyScalatraAdapterTest
-    extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar with ShouldMatchers with ScalatraSuite {
+class ObjectifyScalatraAdapterTest extends TestKit(ActorSystem()) with WordSpec with BeforeAndAfterEach with MockitoSugar
+    with ObjectifySugar with ShouldMatchers with ScalatraSuite {
 
     val scalatrafied = new ObjectifyScalatraAdapter with ScalatraFilter {
+        implicit def executor: ExecutionContext = system.dispatcher
+        override def actorSystem = system
+
         get("/test") {
             "win"
         }

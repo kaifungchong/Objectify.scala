@@ -17,14 +17,20 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatra.ScalatraFilter
 import policies.{AuthenticationPolicy, GoodPolicy}
 import responders.BadPolicyResponder
+import akka.dispatch.ExecutionContext
+import akka.testkit.TestKit
+import akka.actor.ActorSystem
 
 /**
   * Testing objectify syntax
   */
 @RunWith(classOf[JUnitRunner])
-class ObjectifyTest extends WordSpec with ShouldMatchers with ObjectifyImplicits with ObjectifySugar {
+class ObjectifyTest extends TestKit(ActorSystem()) with WordSpec with ShouldMatchers with ObjectifyImplicits with ObjectifySugar {
 
-    class FakeObjectifyFilter extends ObjectifyScalatraAdapter with ScalatraFilter
+    class FakeObjectifyFilter extends ObjectifyScalatraAdapter with ScalatraFilter {
+        implicit def executor: ExecutionContext = system.dispatcher
+        override def actorSystem = system
+    }
 
     "Objectify syntax" should {
         "apply policy to all actions" in {

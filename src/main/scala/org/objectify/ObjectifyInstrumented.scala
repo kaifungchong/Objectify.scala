@@ -11,6 +11,7 @@ package org.objectify
 
 import adapters.ObjectifyRequestAdapter
 import com.yammer.metrics.scala.{Counter, Timer, Instrumented}
+import akka.actor.ActorSystem
 
 /**
   * Instrumented Objectify trait -- using Coda Hale's Metrics

@@ -15,24 +15,32 @@ import org.objectify.HttpMethod.Options
 import org.objectify.HttpMethod.Patch
 import org.objectify.HttpMethod.Post
 import org.objectify.HttpMethod.Put
-import org.objectify.Objectify
+import org.objectify.{Action, Objectify}
 import org.scalatra.servlet.{RichResponse, RichRequest, ServletBase}
 import org.objectify.exceptions.{ObjectifyExceptionWithCause, ObjectifyException, BadRequestException}
 import org.scalatra.fileupload.FileUploadSupport
+import org.scalatra.{AsyncResult, FutureSupport}
+import akka.actor.{Status, Props, Actor, ActorSystem}
+import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
+import akka.util.Timeout
+import org.apache.commons.fileupload.FileItem
+import akka.routing.{DefaultResizer, RoundRobinRouter}
 
-trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploadSupport {
+trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploadSupport with FutureSupport {
+
+    def actorSystem: ActorSystem
 
     /**
-      * Decorates the default bootstrap which has the configuration
-      * validation in it
-      */
+     * Decorates the default bootstrap which has the configuration
+     * validation in it
+     */
     override def bootstrap() {
         super.bootstrap()
 
         /**
-          * Sort wildcards to the top so that there are no route conflicts and that routes are always
-          * added consistently.
-          */
+         * Sort wildcards to the top so that there are no route conflicts and that routes are always
+         * added consistently.
+         */
         val sortedActions = actions.toList.sortBy(_.route.getOrElse(""))(new Ordering[String] {
             def compare(x: String, y: String) = {
                 val wildcardSymbol = ':'
@@ -52,29 +60,54 @@ trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploa
         })
 
         /**
-          * For each action we map to the Scalatra equivalent block parameter
-          * though we are still bound to the HttpServletRequest and Response
-          * currently.
-          */
+         * For each action we map to the Scalatra equivalent block parameter
+         * though we are still bound to the HttpServletRequest and Response
+         * currently.
+         */
+        val objectifyActor = actorSystem.actorOf(Props(new ObjectifyActor())
+            .withRouter(RoundRobinRouter(resizer = Some(DefaultResizer(50, 1000)))))
+
+
         sortedActions.foreach(action => {
-            val scalatraFunction = (action.method match {
-                case Options => options _
-                case Get => get _
-                case Post => post _
-                case Put => put _
-                case Delete => delete _
-                case Patch => patch _
-            })
+            def scalatraFunction(route: String) = action.method match {
+                case Options => options(route) _
+                case Get => get(route) _
+                case Post => post(route) _
+                case Put => put(route) _
+                case Delete => delete(route) _
+                case Patch => patch(route) _
+            }
 
             scalatraFunction("/" + action.route.getOrElse(throw new BadRequestException("No Route Found"))) {
-                // wrap HttpServletRequest in adapter and get ObjectifyResponse
-                val objectifyResponse = execute(action,
-                    new ScalatraRequestAdapter(RichRequest(request), RichResponse(response), params.toMap, Some(fileParams)))
+                new AsyncResult {
+                    val is = {
+                        import _root_.akka.pattern.ask
+                        implicit val timeout = Timeout(10000)
 
-                // find appropriate response adapter and serialize the response
-                locateResponseAdapter(objectifyResponse).serializeResponseAny(request, response, objectifyResponse)
+                        objectifyActor ? (action, request, response, params(request).toMap, fileParams)
+                    }
+                }
             }
         })
+    }
+
+    class ObjectifyActor extends Actor {
+        def receive = {
+            case (action: Action, request: HttpServletRequest, response: HttpServletResponse,
+                params: Map[String, String], fileParams: collection.Map[String, FileItem]) => {
+                try {
+                    // wrap HttpServletRequest in adapter and get ObjectifyResponse
+                    val objectifyResponse = execute(action,
+                        new ScalatraRequestAdapter(RichRequest(request), RichResponse(response), params, Some(fileParams)))
+
+                    // find appropriate response adapter and serialize the response
+                    sender ! locateResponseAdapter(objectifyResponse).serializeResponseAny(request, response, objectifyResponse)
+                }
+                catch {
+                    case e: Exception => sender ! e
+                }
+            }
+        }
     }
 
     error {

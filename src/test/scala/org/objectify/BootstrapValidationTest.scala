@@ -21,15 +21,21 @@ import org.scalatest.mock.MockitoSugar
 import HttpMethod._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+import akka.dispatch.ExecutionContext
+import akka.testkit.TestKit
+import akka.actor.ActorSystem
 
 /**
   * Making sure bootstrap validation works correctly
   */
 @RunWith(classOf[JUnitRunner])
-class BootstrapValidationTest
-    extends WordSpec with ShouldMatchers with BeforeAndAfterEach with ScalatraSuite with ObjectifySugar with MockitoSugar {
+class BootstrapValidationTest extends TestKit(ActorSystem()) with WordSpec with ShouldMatchers with BeforeAndAfterEach
+    with ScalatraSuite with ObjectifySugar with MockitoSugar {
 
     val scalatrafied = new ObjectifyScalatraAdapter with ScalatraFilter {
+        implicit def executor: ExecutionContext = system.dispatcher
+        override def actorSystem = system
+
         get("/test") {
             "win"
         }
