@@ -50,7 +50,7 @@ class BootstrapValidationTest
             }
         }
         "Fail when a service doesn't exist" in {
-            scalatrafied.actions action(Get, "asdf", "asdf",
+            scalatrafied.actions actionBase(Get, "asdf", "asdf",
                 policies = None,
                 service = None,
                 responder = None
@@ -59,7 +59,7 @@ class BootstrapValidationTest
             thrown.getMessage should equal("No class matching the name: AsdfService")
         }
         "Fail when responders don't exist" in {
-            scalatrafied.actions action(Get, "asdf", "asdf",
+            scalatrafied.actions actionBase(Get, "asdf", "asdf",
                 policies = None,
                 service = -:[PicturesIndexService],
                 responder = None
@@ -68,7 +68,7 @@ class BootstrapValidationTest
             thrown.getMessage should equal("No class matching the name: AsdfResponder")
         }
         "Fail when responders don't match up with services" in {
-            scalatrafied.actions action(Get, "asdf", "asdf",
+            scalatrafied.actions actionBase(Get, "asdf", "asdf",
                 policies = None,
                 service = -:[PicturesIndexService],
                 responder = -:[NonStringResponder]

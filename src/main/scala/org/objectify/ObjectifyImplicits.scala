@@ -16,6 +16,8 @@ import responders.PolicyResponder
   * Implicit definitions for Objectify sexiness
   */
 trait ObjectifyImplicits {
+    implicit def string2optionString(s: String) = Some(s)
+
     implicit def tuple2PolicyTuple(policy: (Class[_ <: Policy], Class[_ <: PolicyResponder[_]])) = new PolicyTuple(policy)
 
     implicit def map2PolicyTupleSeq(policyMap: Map[Class[_ <: Policy], Class[_ <: PolicyResponder[_]]]) = {

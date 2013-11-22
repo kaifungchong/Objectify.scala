@@ -47,7 +47,8 @@ case class Action(method: HttpMethod,
                   var policies: Option[Map[Class[_ <: Policy], Class[_ <: PolicyResponder[_]]]] = None,
                   var service: Option[Class[_ <: Service[_]]] = None,
                   var responder: Option[Class[_ <: ServiceResponder[_, _]]] = None,
-                  var ignoreGlobalPolicies: Boolean = false) {
+                  var ignoreGlobalPolicies: Boolean = false,
+                  var resource: Option[String] = None) {
 
     // conditionally set the route
     def setRouteIfNone(newRoute: String) {
@@ -133,7 +134,7 @@ case class Actions() extends Iterable[Action] {
 
     var actions: Map[HttpMethod, Map[String, Action]] = HttpMethod.values.map(_ -> Map[String, Action]()).toMap
 
-    def action(httpMethod: HttpMethod, name: String, route: String, contentType: ContentType = JSON,
+    def actionBase(httpMethod: HttpMethod, name: String, route: String, contentType: ContentType = JSON,
                policies: Option[Map[Class[_ <: Policy], Class[_ <: PolicyResponder[_]]]] = None,
                service: Option[Class[_ <: Service[_]]] = None, responder: Option[Class[_ <: ServiceResponder[_, _]]] = None,
                ignoreGlobalPolicies: Boolean = false) {
@@ -174,6 +175,14 @@ case class Actions() extends Iterable[Action] {
         new Resource(List(index, show, create, update, destroy))
     }
 
+    def singularResource(name: String) = resource(name, pluralize = false)
+
+    def simpleResource(name: String, actionTuple: (String, String)) = resource(name, pluralize = false) onlyRoute actionTuple
+
+    def simpleResource(name: String, verb: String) = resource(name, pluralize = false) only verb
+
+    def action(name: String, verb: HttpMethod = Get, routeOverride: Option[String] = None) = new Resource(Nil) action (name, verb, None, None, routeOverride)
+
     def removeActions(actionsRemove: List[Action]) {
         for (action <- actionsRemove) {
             var map = actions(action.method)
@@ -185,7 +194,23 @@ case class Actions() extends Iterable[Action] {
     /**
       * This class is mainly here to help in creating a pretty syntax with chained calls
       */
-    class Resource(private val actions: List[Option[Action]]) {
+    class Resource(private var actions: List[Option[Action]]) {
+        def action(route: String, verb: HttpMethod = Get,
+                   namePrefix: Option[String] = actions.head.map(_.resource.getOrElse("")),
+                   routePrefix: Option[String] = actions.find(_.get.route.get.endsWith(":id")).map(_.get.route.getOrElse("")),
+                   routeOverride: Option[String] = None): Resource = {
+
+            val action = Some(Action(verb, verb.toString.toLowerCase))
+
+            val _name = namePrefix.getOrElse("") + route.capitalize
+            val _route = routePrefix.map(_ + "/").getOrElse("") + routeOverride.getOrElse(route)
+            resolveRouteAndName(action, _name, _route)
+
+            action +: actions
+
+            this
+        }
+
         def only(actionStrings: String*): Resource = {
             val actualActions = string2Actions(actionStrings)
             val actionsToRemove = actions.filterNot(actualActions.contains(_))
@@ -195,6 +220,10 @@ case class Actions() extends Iterable[Action] {
 
         def onlyRoute(actionTuples: (String, String)*): Resource = {
             onlyRouteWithService(actionTuples.map(a => ((a._1, a._2), (None, None))):_*)
+        }
+
+        def onlyRouteWithPrefix(prefix: String, actionTuples: (String, String)*): Resource = {
+            onlyRouteWithService(actionTuples.map(a => ((a._1, prefix + "/" + a._2), (None, None))):_*)
         }
 
         def onlyRouteWithService(actionTuples: ((String, String),
@@ -286,6 +315,7 @@ case class Actions() extends Iterable[Action] {
     private def resolveRouteAndName(actionOption: Option[Action], namePrefix: String, route: String) {
         actionOption.map(a => {
             a.name = namePrefix.capitalize + a.name.capitalize
+            a.resource = Some(namePrefix)
             a.setRouteIfNone(route)
             action(a)
         })

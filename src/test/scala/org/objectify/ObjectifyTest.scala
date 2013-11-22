@@ -10,6 +10,7 @@
 package org.objectify
 
 import adapters.ObjectifyScalatraAdapter
+import HttpMethod._
 import org.scalatest.WordSpec
 import org.scalatest.matchers.ShouldMatchers
 import org.junit.runner.RunWith
@@ -190,6 +191,37 @@ class ObjectifyTest extends WordSpec with ShouldMatchers with ObjectifyImplicits
             yield (realAction.name, realAction.route)
 
             actionNames should be(Map("CatsDestroy" -> Some("cats/:id"), "CatsUpdate" -> Some("cats/:id")))
+        }
+
+        "method to add to actions to a resource" in {
+            val objf = new FakeObjectifyFilter
+            val resource = objf.actions resource ("cats") except ("index", "create", "show")
+
+            resource action ("duplicate")
+
+            resource action ("duplicate", Post)
+
+            val actionNames = for {(method, action) <- objf.actions.actions
+                                   (strAction, realAction) <- action}
+            yield (realAction.name, realAction.route)
+
+            actionNames should be(Map("CatsDestroy" -> Some("cats/:id"), "CatsDuplicateGet" -> Some("cats/:id/duplicate"),
+                "CatsDuplicatePost" -> Some("cats/:id/duplicate"), "CatsUpdate" -> Some("cats/:id")))
+        }
+
+        "method to add to actions as a resource" in {
+            val objf = new FakeObjectifyFilter
+
+            objf.actions action ("duplicate")
+            objf.actions action ("duplicate", Post)
+            objf.actions action ("duplicate", Put, "asdf/:id/asdfasdf")
+
+            val actionNames = for {(method, action) <- objf.actions.actions
+                                   (strAction, realAction) <- action}
+            yield (realAction.name, realAction.route)
+
+            actionNames should be(Map("DuplicateGet" -> Some("duplicate"), "DuplicatePost" -> Some("duplicate"),
+                "DuplicatePut" -> Some("asdf/:id/asdfasdf")))
         }
     }
 }
