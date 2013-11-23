@@ -198,13 +198,24 @@ case class Actions() extends Iterable[Action] {
         def action(route: String, verb: HttpMethod = Get,
                    namePrefix: Option[String] = actions.head.map(_.resource.getOrElse("")),
                    routePrefix: Option[String] = actions.find(_.get.route.get.endsWith(":id")).map(_.get.route.getOrElse("")),
-                   routeOverride: Option[String] = None): Resource = {
+                   routeOverride: Option[String] = None,
+                   isIndex: Boolean = false): Resource = {
 
             val action = Some(Action(verb, verb.toString.toLowerCase))
 
-            val _name = namePrefix.getOrElse("") + route.capitalize
-            val _route = routePrefix.map(_ + "/").getOrElse("") + routeOverride.getOrElse(route)
-            resolveRouteAndName(action, _name, _route)
+            // index paths -- e.g. /courses/grouped -> CoursesGroupedGet
+            if (isIndex) {
+                val _name = namePrefix.getOrElse("") + route.capitalize
+                val _routePrefix = actions.find(!_.get.route.get.endsWith(":id")).map(_.get.route.getOrElse(""))
+                val _route = _routePrefix.map(_ + "/").getOrElse("") + routeOverride.getOrElse(route).toLowerCase()
+                resolveRouteAndName(action, _name, _route)
+            }
+            // show paths (default) -- e.g. /courses/:id/duplicate -> CourseDuplicatePost
+            else {
+                val _name = namePrefix.map(_.singularize).getOrElse("") + route.capitalize
+                val _route = routePrefix.map(_ + "/").getOrElse("") + routeOverride.getOrElse(route).toLowerCase()
+                resolveRouteAndName(action, _name, _route)
+            }
 
             action +: actions
 

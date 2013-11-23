@@ -205,8 +205,27 @@ class ObjectifyTest extends WordSpec with ShouldMatchers with ObjectifyImplicits
                                    (strAction, realAction) <- action}
             yield (realAction.name, realAction.route)
 
-            actionNames should be(Map("CatsDestroy" -> Some("cats/:id"), "CatsDuplicateGet" -> Some("cats/:id/duplicate"),
-                "CatsDuplicatePost" -> Some("cats/:id/duplicate"), "CatsUpdate" -> Some("cats/:id")))
+            actionNames should be(Map("CatsDestroy" -> Some("cats/:id"), "CatDuplicateGet" -> Some("cats/:id/duplicate"),
+                "CatDuplicatePost" -> Some("cats/:id/duplicate"), "CatsUpdate" -> Some("cats/:id")))
+        }
+
+        "method to add to actions to a resource with index" in {
+            val objf = new FakeObjectifyFilter
+            val resource = objf.actions resource ("cats") except ("index", "create", "show")
+
+            resource action ("duplicate")
+
+            resource action ("duplicate", Post)
+
+            resource action ("grouped", isIndex = true)
+
+            val actionNames = for {(method, action) <- objf.actions.actions
+                                   (strAction, realAction) <- action}
+            yield (realAction.name, realAction.route)
+
+            actionNames should be(Map("CatsDestroy" -> Some("cats/:id"), "CatDuplicateGet" -> Some("cats/:id/duplicate"),
+                "CatDuplicatePost" -> Some("cats/:id/duplicate"), "CatsGroupedGet" -> Some("cats/grouped"),
+                "CatsUpdate" -> Some("cats/:id")))
         }
 
         "method to add to actions as a resource" in {
