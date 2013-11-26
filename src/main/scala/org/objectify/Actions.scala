@@ -230,7 +230,7 @@ case class Actions() extends Iterable[Action] {
                    routeOverride: Option[String] = None,
                    isIndex: Boolean = false) = {
 
-            val action = Some(Action(verb, if (isIndex) "index" else verb.toString.toLowerCase))
+            val action = Some(Action(verb, if (isIndex && verb.equals(Get)) "index" else verb.toString.toLowerCase))
 
             // index paths -- e.g. /courses/grouped -> CoursesGroupedGet
             if (isIndex) {
