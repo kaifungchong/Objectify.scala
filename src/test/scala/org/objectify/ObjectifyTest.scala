@@ -224,7 +224,7 @@ class ObjectifyTest extends WordSpec with ShouldMatchers with ObjectifyImplicits
             yield (realAction.name, realAction.route)
 
             actionNames should be(Map("CatsDestroy" -> Some("cats/:id"), "CatDuplicateGet" -> Some("cats/:id/duplicate"),
-                "CatDuplicatePost" -> Some("cats/:id/duplicate"), "CatsGroupedGet" -> Some("cats/grouped"),
+                "CatDuplicatePost" -> Some("cats/:id/duplicate"), "CatsGroupedIndex" -> Some("cats/grouped"),
                 "CatsUpdate" -> Some("cats/:id")))
         }
 
@@ -241,6 +241,34 @@ class ObjectifyTest extends WordSpec with ShouldMatchers with ObjectifyImplicits
 
             actionNames should be(Map("DuplicateGet" -> Some("duplicate"), "DuplicatePost" -> Some("duplicate"),
                 "DuplicatePut" -> Some("asdf/:id/asdfasdf")))
+        }
+
+        "method to add to actions as a resource with policies" in {
+            val objf = new FakeObjectifyFilter
+            val tuple1 = ~:[GoodPolicy] -> ~:[BadPolicyResponder]
+            val tuple2 = ~:[AuthenticationPolicy] -> ~:[BadPolicyResponder]
+
+            objf.actions action ("duplicate") policy tuple1
+            objf.actions action ("duplicate", Post) policy tuple2
+            objf.actions action ("duplicate", Put, "asdf/:id/asdfasdf") ignoreGlobalPolicies()
+
+            val actionNames = for {(method, action) <- objf.actions.actions
+                                   (strAction, realAction) <- action}
+            yield (realAction.name, realAction.route)
+
+            actionNames should be(Map("DuplicateGet" -> Some("duplicate"), "DuplicatePost" -> Some("duplicate"),
+                "DuplicatePut" -> Some("asdf/:id/asdfasdf")))
+
+            val policies = for {(method, action) <- objf.actions.actions
+                                (strAction, realAction) <- action}
+            yield realAction.policies.map(_.keys)
+
+            val globalIgnore = for {(method, action) <- objf.actions.actions
+                                (strAction, realAction) <- action}
+            yield realAction.ignoreGlobalPolicies
+
+            policies.flatten should have size (2)
+            globalIgnore.toList should equal(List(false, false, true))
         }
     }
 }

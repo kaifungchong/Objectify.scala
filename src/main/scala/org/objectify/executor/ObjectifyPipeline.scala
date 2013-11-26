@@ -15,11 +15,14 @@ import org.objectify.responders.{PolicyResponder, ServiceResponder}
 import org.objectify.adapters.ObjectifyRequestAdapter
 import org.objectify.exceptions.{ObjectifyExceptionWithCause, ObjectifyException}
 import org.objectify.{ContentType, Action, Objectify}
+import com.twitter.logging.Logger
 
 /**
   * This class is responsible for executing the pipeline for the lifecycle of a request.
   */
 class ObjectifyPipeline(objectify: Objectify) {
+    private val logger = Logger(classOf[ObjectifyPipeline])
+
     def handleRequest(action: Action, req: ObjectifyRequestAdapter): ObjectifyResponse[_] = {
         // determine which policies to execute -- globals + action defaults or globals + action overrides
         val policiesToExecute = getPolicies(action)
@@ -27,12 +30,17 @@ class ObjectifyPipeline(objectify: Objectify) {
         // execute policies
         val policyResponders = {
             for {(policy, responder) <- policiesToExecute
-                 if (!instantiate[Policy](policy, req).isAllowed)} yield responder
+                 if (!instantiate[Policy](policy, req).isAllowed)} yield (policy, responder)
         }
 
         // if policies failed respond with first failure
         if (policyResponders.nonEmpty) {
-            val responder = instantiate[PolicyResponder[_]](policyResponders.head, req)
+            // instantiate responder
+            val (policyClass, responderClass) = policyResponders.head
+            val responder = instantiate[PolicyResponder[_]](responderClass, req)
+            responder.policy = Some(policyClass)
+
+            // generate response
             generateResponse(() => (responder.apply(), responder.status,
                 responder.contentType.getOrElse(ContentType.getTypeString(action.contentType))
             ))

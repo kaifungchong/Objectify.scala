@@ -45,8 +45,12 @@ case class Objectify(defaults: Defaults = Defaults(), actions: Actions = Actions
         finally {
             // want to get a logging statement even if request throws exception
             val requestTime = System.currentTimeMillis() - start
+
+            val queryString = Option(requestAdapter.getRequest.getQueryString)
             logger.info("Request [%s - %s] took [%sms] for action [%s]."
-                .format(requestAdapter.getHttpMethod, requestAdapter.getPath, requestTime, action))
+                .format(requestAdapter.getHttpMethod,
+                requestAdapter.getPath + queryString.map("?" + _).getOrElse(""),
+                requestTime, action))
         }
     }
 

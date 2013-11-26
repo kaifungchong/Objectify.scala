@@ -116,8 +116,20 @@ case class Action(method: HttpMethod,
   * Implicit conversion to policy tuples make route definition much simpler and prettier
   */
 class PolicyTuple(val tuple: (Class[_ <: Policy], Class[_ <: PolicyResponder[_]])) {
+    var onlyAct: List[Option[Action]] = Nil
+    var exceptAct: List[Option[Action]] = Nil
     var onlyStr: List[String] = Nil
     var exceptStr: List[String] = Nil
+
+    def onlyActions(actions: Action*) = {
+        onlyAct = actions.toList.map(Some(_))
+        this
+    }
+
+    def exceptActions(actions: Action*) = {
+        exceptAct = actions.toList.map(Some(_))
+        this
+    }
 
     def only(actions: String*) = {
         onlyStr = actions.toList
@@ -195,31 +207,48 @@ case class Actions() extends Iterable[Action] {
       * This class is mainly here to help in creating a pretty syntax with chained calls
       */
     class Resource(private var actions: List[Option[Action]]) {
+        case class ResourceAction(resource: Resource, action: Action) {
+            def policy(policy: PolicyTuple) = {
+                resource.policy(policy onlyActions action)
+                this
+            }
+
+            def policies(policies: PolicyTuple*) = {
+                resource.policies(policies.map(_ onlyActions action):_*)
+                this
+            }
+
+            def ignoreGlobalPolicies() = {
+                resource.ignoreGlobalPoliciesOnlyActions(action)
+                this
+            }
+        }
+
         def action(route: String, verb: HttpMethod = Get,
                    namePrefix: Option[String] = actions.head.map(_.resource.getOrElse("")),
                    routePrefix: Option[String] = actions.find(_.get.route.get.endsWith(":id")).map(_.get.route.getOrElse("")),
                    routeOverride: Option[String] = None,
-                   isIndex: Boolean = false): Resource = {
+                   isIndex: Boolean = false) = {
 
-            val action = Some(Action(verb, verb.toString.toLowerCase))
+            val action = Some(Action(verb, if (isIndex) "index" else verb.toString.toLowerCase))
 
             // index paths -- e.g. /courses/grouped -> CoursesGroupedGet
             if (isIndex) {
                 val _name = namePrefix.getOrElse("") + route.capitalize
-                val _routePrefix = actions.find(!_.get.route.get.endsWith(":id")).map(_.get.route.getOrElse(""))
-                val _route = _routePrefix.map(_ + "/").getOrElse("") + routeOverride.getOrElse(route).toLowerCase()
-                resolveRouteAndName(action, _name, _route)
+                val _routePrefix = Some(namePrefix.getOrElse("").toLowerCase)
+                val _route = _routePrefix.map(_ + "/").getOrElse("") + routeOverride.getOrElse(route).toLowerCase
+                resolveRouteAndName(action, _name, _route, namePrefix)
             }
             // show paths (default) -- e.g. /courses/:id/duplicate -> CourseDuplicatePost
             else {
                 val _name = namePrefix.map(_.singularize).getOrElse("") + route.capitalize
-                val _route = routePrefix.map(_ + "/").getOrElse("") + routeOverride.getOrElse(route).toLowerCase()
-                resolveRouteAndName(action, _name, _route)
+                val _route = routePrefix.map(_ + "/").getOrElse("") + routeOverride.getOrElse(route).toLowerCase
+                resolveRouteAndName(action, _name, _route, namePrefix)
             }
 
-            action +: actions
+            actions = action :: actions
 
-            this
+            ResourceAction(this, action.get)
         }
 
         def only(actionStrings: String*): Resource = {
@@ -284,6 +313,14 @@ case class Actions() extends Iterable[Action] {
             this
         }
 
+        def ignoreGlobalPoliciesOnlyActions(onlyActions: Action*): Resource = {
+            for (action <- onlyActions) {
+                action.ignoreGlobalPolicies = true
+            }
+
+            this
+        }
+
         def ignoreGlobalPoliciesOnly(actionStrings: String*): Resource = {
             val actualActions = string2Actions(actionStrings)
             for (action <- actualActions) {
@@ -295,11 +332,13 @@ case class Actions() extends Iterable[Action] {
 
         private def getActionsFromPolicyTuple(tuple: PolicyTuple): List[Option[Action]] = {
             // either only or except -- not both
-            if (tuple.onlyStr.nonEmpty) {
-                string2Actions(tuple.onlyStr)
+            if (tuple.onlyStr.nonEmpty || tuple.onlyAct.nonEmpty) {
+                string2Actions(tuple.onlyStr) ++ tuple.onlyAct
             }
-            else if (tuple.exceptStr.nonEmpty) {
-                actions.filterNot(string2Actions(tuple.exceptStr).contains(_))
+            else if (tuple.exceptStr.nonEmpty || tuple.exceptAct.nonEmpty) {
+                actions.filterNot({
+                    (string2Actions(tuple.exceptStr) ++ tuple.exceptAct).contains(_)
+                })
             }
             else {
                 actions
@@ -323,10 +362,10 @@ case class Actions() extends Iterable[Action] {
         }
     }
 
-    private def resolveRouteAndName(actionOption: Option[Action], namePrefix: String, route: String) {
+    private def resolveRouteAndName(actionOption: Option[Action], namePrefix: String, route: String, resource: Option[String] = None) {
         actionOption.map(a => {
             a.name = namePrefix.capitalize + a.name.capitalize
-            a.resource = Some(namePrefix)
+            a.resource = Some(resource.getOrElse(namePrefix))
             a.setRouteIfNone(route)
             action(a)
         })
