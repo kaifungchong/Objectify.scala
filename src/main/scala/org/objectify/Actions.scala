@@ -235,14 +235,14 @@ case class Actions() extends Iterable[Action] {
             // index paths -- e.g. /courses/grouped -> CoursesGroupedGet
             if (isIndex) {
                 val _name = namePrefix.getOrElse("") + route.capitalize
-                val _routePrefix = Some(namePrefix.getOrElse("").toLowerCase)
-                val _route = _routePrefix.map(_ + "/").getOrElse("") + routeOverride.getOrElse(route).toLowerCase
+                val _routePrefix = Some(namePrefix.getOrElse(""))
+                val _route = _routePrefix.map(_ + "/").getOrElse("") + routeOverride.getOrElse(route)
                 resolveRouteAndName(action, _name, _route, namePrefix)
             }
             // show paths (default) -- e.g. /courses/:id/duplicate -> CourseDuplicatePost
             else {
                 val _name = namePrefix.map(_.singularize).getOrElse("") + route.capitalize
-                val _route = routePrefix.map(_ + "/").getOrElse("") + routeOverride.getOrElse(route).toLowerCase
+                val _route = routePrefix.map(_ + "/").getOrElse("") + routeOverride.getOrElse(route)
                 resolveRouteAndName(action, _name, _route, namePrefix)
             }
 

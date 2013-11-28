@@ -245,6 +245,22 @@ class ObjectifyTest extends WordSpec with ShouldMatchers with ObjectifyImplicits
                 "DuplicatePut" -> Some("asdf/:id/asdfasdf")))
         }
 
+        "method to add to actions as a resource with staggered case and routeOverrides" in {
+            val objf = new FakeObjectifyFilter
+
+            objf.actions action ("imageAsset")
+
+            objf.actions action ("imageAssets", routeOverride = "imageAssets/:hash/:size")
+
+            objf.actions action("oAuth", routeOverride = "login/oauth")
+
+            val actionNames = for {(method, action) <- objf.actions.actions
+                                   (strAction, realAction) <- action}
+            yield (realAction.name, realAction.route)
+
+            actionNames should be(Map("ImageAssetGet" -> Some("imageAsset"), "ImageAssetsGet" -> Some("imageAssets/:hash/:size"), "OAuthGet" -> Some("login/oauth")))
+        }
+
         "method to add to actions as a resource with policies" in {
             val objf = new FakeObjectifyFilter
             val tuple1 = ~:[GoodPolicy] -> ~:[BadPolicyResponder]
