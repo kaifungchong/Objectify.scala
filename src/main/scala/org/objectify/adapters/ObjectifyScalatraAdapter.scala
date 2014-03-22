@@ -19,6 +19,7 @@ import org.objectify.Objectify
 import org.scalatra.servlet.{RichResponse, RichRequest, ServletBase}
 import org.objectify.exceptions.{ObjectifyExceptionWithCause, ObjectifyException, BadRequestException}
 import org.scalatra.fileupload.FileUploadSupport
+import org.objectify.resolvers.ClassResolver
 
 trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploadSupport {
 
@@ -57,14 +58,14 @@ trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploa
           * currently.
           */
         sortedActions.foreach(action => {
-            val scalatraFunction = (action.method match {
-                case Options => options _
-                case Get => get _
-                case Post => post _
-                case Put => put _
-                case Delete => delete _
-                case Patch => patch _
-            })
+            def scalatraFunction(route: String) = action.method match {
+                case Options => options(route) _
+                case Get => get(route) _
+                case Post => post(route) _
+                case Put => put(route) _
+                case Delete => delete(route) _
+                case Patch => patch(route) _
+            }
 
             scalatraFunction("/" + action.route.getOrElse(throw new BadRequestException("No Route Found"))) {
                 // wrap HttpServletRequest in adapter and get ObjectifyResponse
@@ -72,7 +73,7 @@ trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploa
                     new ScalatraRequestAdapter(RichRequest(request), RichResponse(response), params.toMap, Some(fileParams)))
 
                 // find appropriate response adapter and serialize the response
-                locateResponseAdapter(objectifyResponse).serializeResponseAny(request, response, objectifyResponse)
+                ClassResolver.locateResponseAdapter(objectifyResponse).serializeResponseAny(request, response, objectifyResponse)
             }
         })
     }

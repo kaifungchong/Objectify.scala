@@ -16,6 +16,7 @@ import org.objectify.adapters.ObjectifyRequestAdapter
 import org.objectify.exceptions.{ObjectifyExceptionWithCause, ObjectifyException}
 import org.objectify.{ContentType, Action, Objectify}
 import com.twitter.logging.Logger
+import org.objectify.resolvers.ClassResolver
 
 /**
   * This class is responsible for executing the pipeline for the lifecycle of a request.
@@ -30,7 +31,7 @@ class ObjectifyPipeline(objectify: Objectify) {
         // execute policies
         val policyResponders = {
             for {(policy, responder) <- policiesToExecute
-                 if (!instantiate[Policy](policy, req).isAllowed)} yield (policy, responder)
+                 if !instantiate[Policy](policy, req).isAllowed} yield (policy, responder)
         }
 
         // if policies failed respond with first failure
@@ -42,7 +43,7 @@ class ObjectifyPipeline(objectify: Objectify) {
 
             // generate response
             generateResponse(() => (responder.apply(), responder.status,
-                responder.contentType.getOrElse(ContentType.getTypeString(action.contentType))
+                responder.contentType.getOrElse(action.contentType.toString)
             ))
         }
         // else execute the service call
@@ -59,7 +60,7 @@ class ObjectifyPipeline(objectify: Objectify) {
 
                 // execute responder and extract status
                 (responder.applyAny(serviceResult), responder.status,
-                    responder.contentType.getOrElse(ContentType.getTypeString(action.contentType))
+                    responder.contentType.getOrElse(action.contentType.toString)
                 )
             })
         }
@@ -79,7 +80,7 @@ class ObjectifyPipeline(objectify: Objectify) {
             objectify.defaults.defaultPolicies
     }
 
-    private def instantiate[T: ClassManifest](klass: Class[_ <: T], req: ObjectifyRequestAdapter) = {
+    private def instantiate[T: ClassManifest](klass: Class[_ <: T], req: ObjectifyRequestAdapter): T = {
         Invoker.invoke(klass, req)
     }
 
@@ -89,15 +90,9 @@ class ObjectifyPipeline(objectify: Objectify) {
             new ObjectifyResponse(contentType, status.getOrElse(200), content)
         }
         catch {
-            case e: ObjectifyException => {
-                throw e
-            }
-            case e: ObjectifyExceptionWithCause => {
-                throw e
-            }
-            case e: Exception => {
-                throw new ObjectifyExceptionWithCause(500, "Unexpected Exception", e)
-            }
+            case e: ObjectifyException => throw e
+            case e: ObjectifyExceptionWithCause => throw e
+            case e: Exception => throw new ObjectifyExceptionWithCause(500, "Unexpected Exception", e)
         }
     }
 }

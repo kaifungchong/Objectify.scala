@@ -23,15 +23,16 @@ object HttpMethod extends Enumeration {
 
 object ContentType extends Enumeration {
     type ContentType = Value
-    val JSON, HTML, XML, TEXT = Value
 
-    def getTypeString(contentType: ContentType) = contentType match {
-        case JSON => "application/json"
-        case XML => "application/xml"
-        case HTML => "text/html"
-        case _ => "text/plain"
-    }
+    val HTML = Value("text/html")
+    val JSON = Value("application/json")
+    val XML = Value("application/xml")
+    val TEXT = Value("text/plain")
+    val CSV = Value("text/csv")
+    val PDF = Value("application/pdf")
 }
+
+case class AcceptType(content: Option[ContentType.ContentType])
 
 import HttpMethod._
 import ContentType._

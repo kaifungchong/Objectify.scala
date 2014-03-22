@@ -10,6 +10,7 @@
 package org.objectify.adapters
 
 import org.scalatest.mock.MockitoSugar
+import org.objectify.ContentType._
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatra.test.scalatest.ScalatraSuite
 import org.scalatest.{BeforeAndAfterEach, WordSpec}
@@ -162,6 +163,52 @@ class ObjectifyScalatraAdapterTest
 
                 get("/pictures") {
                     status should equal(403)
+                }
+            }
+        }
+
+        "doing multiple format responses" should {
+            "work for JSON" in {
+                scalatrafied.actions action("multipleFormat", Get)
+                scalatrafied.bootstrap()
+
+                get("/multipleFormat", Nil, Map("Accept" -> JSON.toString)) {
+                    status should equal(200)
+                    header("Content-Type") should include(JSON.toString)
+                    body should be("some value")
+                }
+            }
+
+            "work for XML" in {
+                scalatrafied.actions action("multipleFormat", Get)
+                scalatrafied.bootstrap()
+
+                get("/multipleFormat", Nil, Map("Accept" -> XML.toString)) {
+                    status should equal(200)
+                    header("Content-Type") should include(XML.toString)
+                    body should be("some value")
+                }
+            }
+
+            "default to JSON when empty" in {
+                scalatrafied.actions action("multipleFormat", Get)
+                scalatrafied.bootstrap()
+
+                get("/multipleFormat") {
+                    status should equal(200)
+                    header("Content-Type") should include(JSON.toString)
+                    body should be("some value")
+                }
+            }
+
+            "work for a custom type" in {
+                scalatrafied.actions action("multipleFormat", Get)
+                scalatrafied.bootstrap()
+
+                get("/multipleFormat", Nil, Map("Accept" -> CSV.toString)) {
+                    status should equal(200)
+                    header("Content-Type") should include(CSV.toString)
+                    body should be("some value")
                 }
             }
         }

@@ -10,6 +10,7 @@
 package org.objectify.responders
 
 import org.objectify.exceptions.ConfigurationException
+import org.objectify.adapters.{FormattedResponse, EntityResponse}
 
 
 /**
@@ -37,6 +38,9 @@ abstract class ServiceResponder[T, P: Manifest] {
     }
 
     private def castClass: Class[P] = manifest[P].erasure.asInstanceOf[Class[P]]
+
+    // convenience function for wrapping entity responses
+    implicit def entity2Formatted(er: EntityResponse[_]) = new FormattedResponse(er)
 
     def apply(serviceResult: P): T
 }

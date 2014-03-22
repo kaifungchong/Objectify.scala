@@ -54,6 +54,10 @@ object ClassResolver {
         resolveClass(string, responders)
     }
 
+    def locateResponseAdapter[T](response: ObjectifyResponse[T]): ObjectifyResponseAdapter[T] = {
+        resolveResponseAdapter(response.entity.getClass).newInstance().asInstanceOf[ObjectifyResponseAdapter[T]]
+    }
+
     def resolveResolverClass[T, P](name: String, returnType: Class[T], paramType: Class[P]): Class[Resolver[_, P]] = {
         resolveClassWithReturn(name, "apply", returnType, paramType, resolvers).asInstanceOf[Class[Resolver[_, P]]]
     }
