@@ -9,6 +9,8 @@
 
 package org.objectify.executor
 
+import scala.reflect.ClassTag
+
 /**
   * This class is responsible for invoking instances of classes.
   */
@@ -22,7 +24,7 @@ private[executor] object Invoker {
       * @param resolverParam - the resolver parameter to inject the constructor of the resolver with
       * @return - a dependency-injected instance
       */
-    def invoke[T, P: ClassManifest](clazz: Class[_ <: T], resolverParam: P): T = {
+    def invoke[T, P: ClassTag](clazz: Class[_ <: T], resolverParam: P): T = {
         /*
     1. find the constructor annotations
     2. for each constructor annotation, instantiate a resolver and pass it the above parameter

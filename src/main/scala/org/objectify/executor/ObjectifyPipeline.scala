@@ -14,15 +14,13 @@ import org.objectify.services.Service
 import org.objectify.responders.{PolicyResponder, ServiceResponder}
 import org.objectify.adapters.ObjectifyRequestAdapter
 import org.objectify.exceptions.{ObjectifyExceptionWithCause, ObjectifyException}
-import org.objectify.{ContentType, Action, Objectify}
-import com.twitter.logging.Logger
-import org.objectify.resolvers.ClassResolver
+import org.objectify.{Action, Objectify}
+import scala.reflect.ClassTag
 
 /**
   * This class is responsible for executing the pipeline for the lifecycle of a request.
   */
 class ObjectifyPipeline(objectify: Objectify) {
-    private val logger = Logger(classOf[ObjectifyPipeline])
 
     def handleRequest(action: Action, req: ObjectifyRequestAdapter): ObjectifyResponse[_] = {
         // determine which policies to execute -- globals + action defaults or globals + action overrides
@@ -80,11 +78,11 @@ class ObjectifyPipeline(objectify: Objectify) {
             objectify.defaults.defaultPolicies
     }
 
-    private def instantiate[T: ClassManifest](klass: Class[_ <: T], req: ObjectifyRequestAdapter): T = {
+    private def instantiate[T: ClassTag](klass: Class[_ <: T], req: ObjectifyRequestAdapter): T = {
         Invoker.invoke(klass, req)
     }
 
-    def generateResponse[T: ClassManifest](result: () => (T, Option[Int], String)): ObjectifyResponse[T] = {
+    def generateResponse[T: ClassTag](result: () => (T, Option[Int], String)): ObjectifyResponse[T] = {
         try {
             val (content, status, contentType) = result()
             new ObjectifyResponse(contentType, status.getOrElse(200), content)

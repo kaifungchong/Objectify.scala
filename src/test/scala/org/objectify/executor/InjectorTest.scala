@@ -33,23 +33,23 @@ class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar wi
 
     "Injector" should {
         "resolve type" in {
-            assert(Injector.getInjectedResolverParams(manifest[TestPolicy1].erasure.getConstructors.head, resolverParamMock)
+            assert(Injector.getInjectedResolverParams(manifest[TestPolicy1].runtimeClass.getConstructors.head, resolverParamMock)
                 .asInstanceOf[List[String]].head.equalsIgnoreCase(stringResolverActual))
         }
         "resolve annotation" in {
-            assert(Injector.getInjectedResolverParams(manifest[TestPolicy2].erasure.getConstructors.head, resolverParamMock)
+            assert(Injector.getInjectedResolverParams(manifest[TestPolicy2].runtimeClass.getConstructors.head, resolverParamMock)
                 .asInstanceOf[List[String]].head.equalsIgnoreCase(currentUserResolverActual))
         }
         "resolve type and annotation" in {
-            assert(Injector.getInjectedResolverParams(manifest[TestPolicy3].erasure.getConstructors.head, resolverParamMock)
+            assert(Injector.getInjectedResolverParams(manifest[TestPolicy3].runtimeClass.getConstructors.head, resolverParamMock)
                 .asInstanceOf[List[String]].equals(List(currentUserResolverActual, stringResolverActual)))
         }
         "resolve annotation and type" in {
-            assert(Injector.getInjectedResolverParams(manifest[TestPolicy4].erasure.getConstructors.head, resolverParamMock)
+            assert(Injector.getInjectedResolverParams(manifest[TestPolicy4].runtimeClass.getConstructors.head, resolverParamMock)
                 .asInstanceOf[List[String]].equals(List(stringResolverActual, currentUserResolverActual)))
         }
         "resolve mish mash" in {
-            assert(Injector.getInjectedResolverParams(manifest[TestPolicy5].erasure.getConstructors.head, resolverParamMock)
+            assert(Injector.getInjectedResolverParams(manifest[TestPolicy5].runtimeClass.getConstructors.head, resolverParamMock)
                 .asInstanceOf[List[String]].equals(
                 List(
                     stringResolverActual,
@@ -64,20 +64,20 @@ class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar wi
         }
 
         "resolve annotation and generic type" in {
-            assert(Injector.getInjectedResolverParams(manifest[TestPolicyGeneric1].erasure.getConstructors.head, resolverParamMock)
+            assert(Injector.getInjectedResolverParams(manifest[TestPolicyGeneric1].runtimeClass.getConstructors.head, resolverParamMock)
                 .asInstanceOf[List[String]].equals(List(listStringResolverActual, currentUserResolverActual)))
         }
         "resolve generic annotation and type" in {
-            assert(Injector.getInjectedResolverParams(manifest[TestPolicyGeneric2].erasure.getConstructors.head, resolverParamMock)
+            assert(Injector.getInjectedResolverParams(manifest[TestPolicyGeneric2].runtimeClass.getConstructors.head, resolverParamMock)
                 .asInstanceOf[List[String]].equals(List(stringResolverActual, listCurrentUserResolverActual)))
         }
         "resolve generic annotation and generic type" in {
-            assert(Injector.getInjectedResolverParams(manifest[TestPolicyGeneric3].erasure.getConstructors.head, resolverParamMock)
+            assert(Injector.getInjectedResolverParams(manifest[TestPolicyGeneric3].runtimeClass.getConstructors.head, resolverParamMock)
                 .asInstanceOf[List[String]].equals(List(listStringResolverActual, listCurrentUserResolverActual)))
         }
 
         "resolve multi generic annotation and generic type" in {
-            val params = Injector.getInjectedResolverParams(manifest[TestPolicyGeneric4].erasure.getConstructors.head, resolverParamMock)
+            val params = Injector.getInjectedResolverParams(manifest[TestPolicyGeneric4].runtimeClass.getConstructors.head, resolverParamMock)
             assert(params.asInstanceOf[List[Option[List[String]]]].equals(List(optionListStringResolverActual, optionListCurrentUserResolverActual)))
         }
     }

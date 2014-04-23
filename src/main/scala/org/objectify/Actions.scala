@@ -349,7 +349,7 @@ case class Actions() extends Iterable[Action] {
         // try to match up name with reverse of resolveRouteAndName
         private def string2Actions(actionStr: Seq[String]) = {
             actions.filter(action => {
-                actionStr.filter(s => action.get.name.toLowerCase.endsWith(s)).size > 0
+                actionStr.count(s => action.get.name.toLowerCase.endsWith(s)) > 0
             })
         }
 
@@ -372,10 +372,11 @@ case class Actions() extends Iterable[Action] {
         })
     }
 
-    private def action(action: Action) {
+    private def action(action: Action) = {
         var map = actions(action.method)
         map += (action.route.get -> action)
         actions += (action.method -> map)
+
         action
     }
 
@@ -399,7 +400,7 @@ case class Actions() extends Iterable[Action] {
             }
             catch {
                 case e: NoSuchMethodException =>
-                    val parameterType = responder.getMethods.filter(_.getName.startsWith("apply")).headOption
+                    val parameterType = responder.getMethods.find(_.getName.startsWith("apply"))
                     throw new ConfigurationException("Service [%s] and Responder [%s] are not compatible. " +
                         "Service return type [%s] does not match Responder apply method parameter [%s]."
                         format(service.toString, responder.toString, returnType.toString, parameterType.getOrElse("Undefined").toString))
@@ -412,19 +413,17 @@ case class Actions() extends Iterable[Action] {
         stringBuilder.append("\n")
         stringBuilder.append("Actions[")
         actions.foreach {
-            case (verb, actions) => {
+            case (verb, innerActions) =>
                 stringBuilder.append("\n\t")
                 stringBuilder.append(verb)
-                actions.foreach {
-                    case (route, action) => {
+                innerActions.foreach {
+                    case (route, action) =>
                         stringBuilder.append("\n\t\t")
                         stringBuilder.append(action)
-                    }
                 }
-            }
         }
         stringBuilder.append("\n")
         stringBuilder.append("]")
-        stringBuilder.toString
+        stringBuilder.toString()
     }
 }

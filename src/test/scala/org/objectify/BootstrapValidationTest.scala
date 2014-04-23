@@ -11,8 +11,7 @@ package org.objectify
 
 import adapters.ObjectifyScalatraAdapter
 import exceptions.ConfigurationException
-import org.scalatest.{BeforeAndAfterEach, WordSpec}
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.{Matchers, BeforeAndAfterEach, WordSpec}
 import org.scalatra.ScalatraFilter
 import org.scalatra.test.scalatest.ScalatraSuite
 import responders.ServiceResponder
@@ -27,7 +26,7 @@ import org.scalatest.junit.JUnitRunner
   */
 @RunWith(classOf[JUnitRunner])
 class BootstrapValidationTest
-    extends WordSpec with ShouldMatchers with BeforeAndAfterEach with ScalatraSuite with ObjectifySugar with MockitoSugar {
+    extends WordSpec with Matchers with BeforeAndAfterEach with ScalatraSuite with ObjectifySugar with MockitoSugar {
 
     val scalatrafied = new ObjectifyScalatraAdapter with ScalatraFilter {
         get("/test") {
@@ -41,7 +40,7 @@ class BootstrapValidationTest
 
     "Bootstrap validation" should {
         "pass the control test" in {
-            scalatrafied.actions resource ("pictures")
+            scalatrafied.actions resource "pictures"
             scalatrafied.bootstrap()
 
             get("/test") {

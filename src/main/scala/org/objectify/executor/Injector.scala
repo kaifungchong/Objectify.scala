@@ -13,6 +13,7 @@ import java.lang.reflect.{ParameterizedType, Constructor}
 import collection.mutable.ListBuffer
 import javax.inject.Named
 import org.objectify.resolvers.{ClassResolver, Resolver}
+import scala.reflect.{ClassTag, classTag}
 
 /**
   * This object is responsible for finding, instantiating and executing resolvers for the given constructor
@@ -26,42 +27,40 @@ private[executor] object Injector {
       * @param resolverParam - the parameter value to resolve with
       * @return - the values to be passed to the injectable class
       */
-    def getInjectedResolverParams[P: ClassManifest](constructor: Constructor[_], resolverParam: P): List[Any] = {
+    def getInjectedResolverParams[P: ClassTag](constructor: Constructor[_], resolverParam: P): List[Any] = {
         val constructorValues = ListBuffer[Any]()
 
         (constructor.getGenericParameterTypes, constructor.getParameterAnnotations).zipped.foreach {
             (genParamType, paramAnnotations) =>
-            // assume only one annotation per parameter
+                // assume only one annotation per parameter
                 val paramAnnotation = paramAnnotations.headOption
 
                 // if it an instance of class then it has no generic parameter
-                if (genParamType.isInstanceOf[Class[_]]) {
-                    val paramType = genParamType.asInstanceOf[Class[_]]
+                genParamType match {
+                    case paramType: Class[_] =>
+                        constructorValues += invokeParameter(paramAnnotation, paramType, resolverParam)
 
-                    constructorValues += invokeParameter(paramAnnotation, paramType, resolverParam)
-                }
-                // otherwise, it has to be an instance of ParameterizedType
-                else if (genParamType.isInstanceOf[ParameterizedType]) {
-                    val paramType = genParamType.asInstanceOf[ParameterizedType]
-                    val rawType = paramType.getRawType.asInstanceOf[Class[_]]
-                    val genericTypes = new ListBuffer[Class[_]]()
+                    case paramType: ParameterizedType =>
+                        val rawType = paramType.getRawType.asInstanceOf[Class[_]]
+                        val genericTypes = new ListBuffer[Class[_]]()
 
-                    var pt = paramType
-                    // iterate through all type parameters
-                    while (pt.getActualTypeArguments.head.isInstanceOf[ParameterizedType]) {
-                        pt = pt.getActualTypeArguments.head.asInstanceOf[ParameterizedType]
-                        genericTypes += pt.getRawType.asInstanceOf[Class[_]]
-                    }
-                    // lastly add non-typed param
-                    genericTypes += pt.getActualTypeArguments.head.asInstanceOf[Class[_]]
+                        var pt = paramType
+                        // iterate through all type parameters
+                        while (pt.getActualTypeArguments.head.isInstanceOf[ParameterizedType]) {
+                            pt = pt.getActualTypeArguments.head.asInstanceOf[ParameterizedType]
+                            genericTypes += pt.getRawType.asInstanceOf[Class[_]]
+                        }
+                        // lastly add non-typed param
+                        genericTypes += pt.getActualTypeArguments.head.asInstanceOf[Class[_]]
 
-                    constructorValues += invokeParameter(paramAnnotation, rawType, resolverParam, Some(genericTypes.toSeq))
+                        constructorValues += invokeParameter(paramAnnotation, rawType, resolverParam, Some(genericTypes.toSeq))
+                    case _ => // nothing
                 }
         }
         constructorValues.toList
     }
 
-    def invokeParameter[P: ClassManifest](paramAnnotation: Option[java.lang.annotation.Annotation], paramType: Class[_],
+    def invokeParameter[P: ClassTag](paramAnnotation: Option[java.lang.annotation.Annotation], paramType: Class[_],
                                           resolverParam: P, genericTypes: Option[Seq[Class[_]]] = None): Any = {
         // if annotated, easy to find resolver
         if (paramAnnotation.isDefined && paramAnnotation.get.isInstanceOf[Named]) {
@@ -69,7 +68,7 @@ private[executor] object Injector {
             val resolver: Class[Resolver[_, P]] = ClassResolver.resolveResolverClass(
                 namedAnno.value(),
                 paramType,
-                classManifest[P].erasure.asInstanceOf[Class[P]]
+                classTag[P].runtimeClass.asInstanceOf[Class[P]]
             )
             Invoker.invoke(resolver, resolverParam).apply(resolverParam)
         }
@@ -80,7 +79,7 @@ private[executor] object Injector {
             val resolver: Class[Resolver[_, P]] = ClassResolver.resolveResolverClass(
                 className,
                 paramType,
-                classManifest[P].erasure.asInstanceOf[Class[P]]
+                classTag[P].runtimeClass.asInstanceOf[Class[P]]
             )
             Invoker.invoke(resolver, resolverParam).apply(resolverParam)
         }

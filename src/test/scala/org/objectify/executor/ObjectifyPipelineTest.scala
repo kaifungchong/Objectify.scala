@@ -9,14 +9,13 @@
 
 package org.objectify.executor
 
-import org.scalatest.{BeforeAndAfterEach, WordSpec}
+import org.scalatest.{Matchers, BeforeAndAfterEach, WordSpec}
 import org.scalatest.mock.MockitoSugar
 import org.objectify.HttpMethod._
 import org.mockito.Mockito._
 import org.objectify.policies.{AuthenticationPolicy, BadPolicy, GoodPolicy}
 import org.objectify.services.{NullService, PicturesIndexService}
 import org.objectify.responders.{PicturesIndexResponder, BadPolicyResponder}
-import org.scalatest.matchers.ShouldMatchers
 import org.objectify.adapters.ObjectifyRequestAdapter
 import org.objectify.{ObjectifySugar, Action, Objectify}
 import org.scalatest.junit.JUnitRunner
@@ -26,7 +25,7 @@ import org.junit.runner.RunWith
   * Testing the pipeline and sub-methods
   */
 @RunWith(classOf[JUnitRunner])
-class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar with ShouldMatchers {
+class ObjectifyPipelineTest extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar with Matchers {
     val objectify = Objectify()
     val pipeline = new ObjectifyPipeline(objectify)
 

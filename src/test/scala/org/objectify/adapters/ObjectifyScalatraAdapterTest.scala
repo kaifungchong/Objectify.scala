@@ -11,9 +11,8 @@ package org.objectify.adapters
 
 import org.scalatest.mock.MockitoSugar
 import org.objectify.ContentType._
-import org.scalatest.matchers.ShouldMatchers
 import org.scalatra.test.scalatest.ScalatraSuite
-import org.scalatest.{BeforeAndAfterEach, WordSpec}
+import org.scalatest.{Matchers, BeforeAndAfterEach, WordSpec}
 import org.scalatra.ScalatraFilter
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -29,7 +28,7 @@ import org.objectify.services.{ThrowsUnexpected, Throws403, ThrowsConfig, Throws
   */
 @RunWith(classOf[JUnitRunner])
 class ObjectifyScalatraAdapterTest
-    extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar with ShouldMatchers with ScalatraSuite {
+    extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar with Matchers with ScalatraSuite {
 
     val scalatrafied = new ObjectifyScalatraAdapter with ScalatraFilter {
         get("/test") {
@@ -40,7 +39,7 @@ class ObjectifyScalatraAdapterTest
     override def beforeEach() {
         addFilter(scalatrafied, "/*")
 
-        scalatrafied.actions resource ("pictures")
+        scalatrafied.actions resource "pictures"
         scalatrafied.bootstrap()
     }
 

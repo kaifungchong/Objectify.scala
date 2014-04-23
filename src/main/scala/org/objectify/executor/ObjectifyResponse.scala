@@ -9,9 +9,11 @@
 
 package org.objectify.executor
 
+import scala.reflect.ClassTag
+
 /**
   * This is a wrapper for a response
   */
-class ObjectifyResponse[T: ClassManifest](val contentType: String, val status: Int, val entity: T)
+class ObjectifyResponse[T: ClassTag](val contentType: String, val status: Int, val entity: T)
 
 
