@@ -145,7 +145,7 @@ class PolicyTuple(val tuple: (Class[_ <: Policy], Class[_ <: PolicyResponder[_]]
 
 case class Actions() extends Iterable[Action] {
 
-    var actions: Map[HttpMethod, Map[String, Action]] = HttpMethod.values.map(_ -> Map[String, Action]()).toMap
+    var actions: Map[HttpMethod, Map[String, Action]] = HttpMethod.values.toList.map(v => v -> Map[String, Action]()).toMap
 
     def actionBase(httpMethod: HttpMethod, name: String, route: String, contentType: ContentType = JSON,
                policies: Option[Map[Class[_ <: Policy], Class[_ <: PolicyResponder[_]]]] = None,

@@ -10,12 +10,12 @@
 package org.objectify
 
 import adapters.ObjectifyRequestAdapter
-import com.yammer.metrics.scala.{Counter, Timer, Instrumented}
+import nl.grons.metrics.scala.{InstrumentedBuilder, Counter, Timer}
 
 /**
-  * Instrumented Objectify trait -- using Coda Hale's Metrics
-  */
-trait ObjectifyInstrumented extends Objectify with Instrumented {
+ * Instrumented Objectify trait -- using Coda Hale's Metrics
+ */
+trait ObjectifyInstrumented extends Objectify with InstrumentedBuilder {
     private val bootstrapTimer = metrics.timer("BootstrapTimer")
     private val miscTimer = metrics.timer("timer.actionRoute.undefined")
     private val miscCounter = metrics.counter("counter.actionRoute.undefined")

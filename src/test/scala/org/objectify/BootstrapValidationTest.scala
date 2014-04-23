@@ -55,7 +55,7 @@ class BootstrapValidationTest
                 service = None,
                 responder = None
             )
-            val thrown = evaluating { scalatrafied.bootstrap() } should produce [ConfigurationException]
+            val thrown = the [ConfigurationException] thrownBy scalatrafied.bootstrap()
             thrown.getMessage should equal("No class matching the name: AsdfService")
         }
         "Fail when responders don't exist" in {
@@ -64,7 +64,7 @@ class BootstrapValidationTest
                 service = -:[PicturesIndexService],
                 responder = None
             )
-            val thrown = evaluating { scalatrafied.bootstrap() } should produce [ConfigurationException]
+            val thrown = the [ConfigurationException] thrownBy scalatrafied.bootstrap()
             thrown.getMessage should equal("No class matching the name: AsdfResponder")
         }
         "Fail when responders don't match up with services" in {
@@ -73,7 +73,7 @@ class BootstrapValidationTest
                 service = -:[PicturesIndexService],
                 responder = -:[NonStringResponder]
             )
-            val thrown = evaluating { scalatrafied.bootstrap() } should produce [ConfigurationException]
+            val thrown = the [ConfigurationException] thrownBy scalatrafied.bootstrap()
             thrown.getMessage should equal("Service [class org.objectify.services.PicturesIndexService] and " +
                 "Responder [class org.objectify.NonStringResponder] are not compatible. Service return " +
                 "type [class java.lang.String] does not match Responder apply method parameter [public java.lang.String org.objectify.NonStringResponder.apply(int)].")
