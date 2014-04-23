@@ -147,9 +147,9 @@
                     </execution>
                 </executions>
                 <configuration>
-<!--                    <recompileMode>incremental</recompileMode>
+                    <recompileMode>incremental</recompileMode>
                     <useZincServer>true</useZincServer>
-                    <zincPort>9191</zincPort>-->
+                    <zincPort>9191</zincPort>
                     <scalaVersion>${scala.minor.version}</scalaVersion>
                     <args>
                         <arg>-optimise</arg>
