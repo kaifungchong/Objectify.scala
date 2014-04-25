@@ -106,7 +106,7 @@
         <dependency>
             <groupId>nl.grons</groupId>
             <artifactId>metrics-scala_${scala.version}</artifactId>
-            <version>${metrics.version}</version>
+            <version>3.1.1_a2.3</version>
         </dependency>
 
         <!-- Test -->
