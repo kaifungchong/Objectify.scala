@@ -4,20 +4,15 @@
     <groupId>org.objectify</groupId>
     <artifactId>objectify-scala</artifactId>
     <packaging>jar</packaging>
-    <version>0.2.1</version>
+    <version>0.2.2</version>
     <name>Scala Port of the Objectify Framework</name>
     <url>https://github.com/bitlove/objectify</url>
 
     <repositories>
         <repository>
-            <id>oss.sonatype.org</id>
-            <name>Scala-tools Maven2 Repository</name>
-            <url>https://oss.sonatype.org/</url>
-        </repository>
-        <repository>
-            <id>twitter</id>
-            <name>Maven Twitter Repo</name>
-            <url>http://maven.twttr.com/</url>
+            <id>matygo-repo</id>
+            <name>Matygo Repo</name>
+            <url>http://maven.learndot.com/content/groups/matygo-repo/</url>
         </repository>
     </repositories>
 
@@ -37,9 +32,9 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <scala.version>2.10</scala.version>
-        <scala.minor.version>2.10.4</scala.minor.version>
-        <scalatra.version>2.2.2</scalatra.version>
+        <scala.version>2.11</scala.version>
+        <scala.minor.version>2.11.1</scala.minor.version>
+        <scalatra.version>2.3.0</scalatra.version>
         <metrics.version>3.0.2</metrics.version>
     </properties>
 
