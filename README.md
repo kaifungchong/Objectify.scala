@@ -8,7 +8,7 @@ Note: Currently the only included adapter is for [Scalatra](http://www.scalatra.
 
 ## Why would I use this?
 
-This framework was inspired by [James Gollick’s](http://jamesgolick.com/) similarly named [Ruby framework](https://github.com/bitlove/objectify).
+This framework was inspired by [James Golick’s](http://jamesgolick.com/) similarly named [Ruby framework](https://github.com/bitlove/objectify).
 
 When we used Scalatra by itself, services were defined all over the place, in various files and shared functionality
 and codification was done via inheritance. This isn't necessarily Scalatra's fault, it's just something that happens 
