@@ -22,64 +22,66 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 /**
-  * Making sure bootstrap validation works correctly
-  */
+ * Making sure bootstrap validation works correctly
+ */
 @RunWith(classOf[JUnitRunner])
 class BootstrapValidationTest
-    extends WordSpec with Matchers with BeforeAndAfterEach with ScalatraSuite with ObjectifySugar with MockitoSugar {
+  extends WordSpec with Matchers with BeforeAndAfterEach with ScalatraSuite with ObjectifySugar with MockitoSugar {
 
-    val scalatrafied = new ObjectifyScalatraAdapter with ScalatraFilter {
-        get("/test") {
-            "win"
-        }
+  val scalatrafied = new ObjectifyScalatraAdapter with ScalatraFilter {
+    get("/test") {
+      "win"
     }
+  }
 
-    override def beforeEach() {
-        addFilter(scalatrafied, "/*")
+  override def beforeEach() {
+    addFilter(scalatrafied, "/*")
+  }
+
+  "Bootstrap validation" should {
+    "pass the control test" in {
+      scalatrafied.actions resource "pictures"
+      scalatrafied.bootstrap()
+
+      get("/test") {
+        status should be(200)
+        body should be("win")
+      }
     }
-
-    "Bootstrap validation" should {
-        "pass the control test" in {
-            scalatrafied.actions resource "pictures"
-            scalatrafied.bootstrap()
-
-            get("/test") {
-                status should be(200)
-                body should be("win")
-            }
-        }
-        "Fail when a service doesn't exist" in {
-            scalatrafied.actions actionBase(Get, "asdf", "asdf",
-                policies = None,
-                service = None,
-                responder = None
-            )
-            val thrown = the [ConfigurationException] thrownBy scalatrafied.bootstrap()
-            thrown.getMessage should equal("No class matching the name: AsdfService")
-        }
-        "Fail when responders don't exist" in {
-            scalatrafied.actions actionBase(Get, "asdf", "asdf",
-                policies = None,
-                service = -:[PicturesIndexService],
-                responder = None
-            )
-            val thrown = the [ConfigurationException] thrownBy scalatrafied.bootstrap()
-            thrown.getMessage should equal("No class matching the name: AsdfResponder")
-        }
-        "Fail when responders don't match up with services" in {
-            scalatrafied.actions actionBase(Get, "asdf", "asdf",
-                policies = None,
-                service = -:[PicturesIndexService],
-                responder = -:[NonStringResponder]
-            )
-            val thrown = the [ConfigurationException] thrownBy scalatrafied.bootstrap()
-            thrown.getMessage should equal("Service [class org.objectify.services.PicturesIndexService] and " +
-                "Responder [class org.objectify.NonStringResponder] are not compatible. Service return " +
-                "type [class java.lang.String] does not match Responder apply method parameter [public java.lang.String org.objectify.NonStringResponder.apply(int)].")
-        }
+    "Fail when a service doesn't exist" in {
+      scalatrafied.actions actionBase(Get, "asdf", "asdf",
+        policies = None,
+        service = None,
+        responder = None
+        )
+      val thrown = the[ConfigurationException] thrownBy scalatrafied.bootstrap()
+      thrown.getMessage should equal("No class matching the name: AsdfService")
     }
+    "Fail when responders don't exist" in {
+      scalatrafied.actions actionBase(Get, "asdf", "asdf",
+        policies = None,
+        service = -:[PicturesIndexService],
+        responder = None
+        )
+      val thrown = the[ConfigurationException] thrownBy scalatrafied.bootstrap()
+      thrown.getMessage should equal("No class matching the name: AsdfResponder")
+    }
+    "Fail when responders don't match up with services" in {
+      scalatrafied.actions actionBase(Get, "asdf", "asdf",
+        policies = None,
+        service = -:[PicturesIndexService],
+        responder = -:[NonStringResponder]
+        )
+      val thrown = the[ConfigurationException] thrownBy scalatrafied.bootstrap()
+      val message = "Service [class org.objectify.services.PicturesIndexService] and " +
+        "Responder [class org.objectify.NonStringResponder] are not compatible. Service return " +
+        "type [class java.lang.String] does not match Responder apply method parameter [public java.lang.String org.objectify.NonStringResponder.apply(int)]."
+
+      thrown.getMessage should equal(message)
+    }
+  }
 }
 
 class NonStringResponder extends ServiceResponder[String, Int] {
-    def apply(serviceResult: Int) = serviceResult.toString
+  def apply(serviceResult: Int) = serviceResult.toString
 }
