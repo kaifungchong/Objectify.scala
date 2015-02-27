@@ -15,31 +15,33 @@ import org.scalatra.servlet.{RichResponse, RichRequest}
 import org.apache.commons.fileupload.FileItem
 
 /**
-  * Scalatrafied Request!
-  */
-class ScalatraRequestAdapter(request: RichRequest, response: RichResponse, pathParameters: Map[String, String],
+ * Scalatrafied Request!
+ */
+class ScalatraRequestAdapter(request: RichRequest,
+                             response: RichResponse,
+                             pathParameters: Map[String, String],
                              fileParams: Option[collection.Map[String, FileItem]] = None)
-    extends ObjectifyRequestAdapter {
+  extends ObjectifyRequestAdapter {
 
-    def getPath = request.pathInfo
+  def getPath = request.pathInfo
 
-    def getQueryParameters = request.multiParameters.map(entry => (entry._1, entry._2.toList))
+  def getQueryParameters = request.multiParameters.map(entry => (entry._1, entry._2.toList))
 
-    def getPathParameters = pathParameters
+  def getPathParameters = pathParameters
 
-    def getHttpMethod = HttpMethod.values.find(_.toString.equalsIgnoreCase(request.requestMethod.toString))
-        .getOrElse(throw new BadRequestException("Could not parse HTTP method."))
+  def getHttpMethod = HttpMethod.values.find(_.toString.equalsIgnoreCase(request.requestMethod.toString))
+    .getOrElse(throw new BadRequestException("Could not parse HTTP method."))
 
-    def getBody = request.body
+  def getBody = request.body
 
-    def getFileParams = {
-        val fp = fileParams.getOrElse(Map())
-        fp.toMap[String, FileItem]
-    }
+  def getFileParams = {
+    val fp = fileParams.getOrElse(Map())
+    fp.toMap[String, FileItem]
+  }
 
-    def getCookies = request.cookies.toMap
+  def getCookies = request.cookies.toMap
 
-    def getRequest = request.r
+  def getRequest = request.r
 
-    def getResponse = response.res
+  def getResponse = response.res
 }
