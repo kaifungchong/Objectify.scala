@@ -32,6 +32,65 @@ object ContentType extends Enumeration {
   val PDF = Value("application/pdf")
 }
 
+object HttpStatus extends Enumeration {
+  type HttpStatus = Value
+
+  val NotSet = Value(0);
+  val Continue = Value(100)
+  val SwitchingProtocols = Value(101)
+  val PROCESSING_102 = Value(102)
+
+  val Ok = Value(200)
+  val Created = Value(201)
+  val Accepted = Value(202)
+  val NonAuthoritativeInformation = Value(203)
+  val NoContent = Value(204)
+  val ResetContent = Value(205)
+  val PartialContent = Value(206)
+  val MultiStatus = Value(207)
+
+  val MultipleChoices = Value(300)
+  val MovedPermanently = Value(301)
+  val MovedTemporarily = Value(302)
+  val Found = Value(302)
+  val SeeOther = Value(303)
+  val NotModified = Value(304)
+  val UseProxy = Value(305)
+  val TemporaryRedirect = Value(307)
+
+  val BadRequest = Value(400)
+  val Unauthorized = Value(401)
+  val PaymentRequired = Value(402)
+  val Forbidden = Value(403)
+  val NotFound = Value(404)
+  val MethodNotAllowed = Value(405)
+  val NotAcceptable = Value(406)
+  val ProxyAuthenticationRequired = Value(407)
+  val RequestTimeout = Value(408)
+  val Conflict = Value(409)
+  val Gone = Value(410)
+  val LengthRequired = Value(411)
+  val PreconditionFailed = Value(412)
+  val RequestEntitygToo_Large = Value(413)
+  val RequestUrigToo_Long = Value(414)
+  val UnsupportedMediagType = Value(415)
+  val RequestedRangegNot_Satisfiable = Value(416)
+  val ExpectationFailed = Value(417)
+  val UnprocessableEntity = Value(422)
+  val Locked = Value(423)
+  val FailedDependency = Value(424)
+
+  val InternalServergError = Value(500)
+  val NotImplemented = Value(501)
+  val BadGateway = Value(502)
+  val ServiceUnavailable = Value(503)
+  val GatewayTimeout = Value(504)
+  val HttpVersiongNot_Supported = Value(505)
+  val InsufficientStorage = Value(507)
+
+
+}
+
 case class AcceptType(content: Option[ContentType.ContentType])
 
 import HttpMethod._
