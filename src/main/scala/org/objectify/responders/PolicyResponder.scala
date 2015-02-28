@@ -9,15 +9,17 @@
 
 package org.objectify.responders
 
+import org.objectify.ContentType._
+import org.objectify.HttpStatus._
 import org.objectify.policies.Policy
 
 /**
-  * A policy responder is applied without any result
-  */
+ * A policy responder is applied without any result
+ */
 trait PolicyResponder[T] {
-    var status:Option[Int] = None
-    var contentType:Option[String] = None
-    var policy: Option[Class[_ <: Policy]] = None
+  var status: HttpStatus = Ok
+  var contentType: ContentType = JSON
+  var policy: Option[Class[_ <: Policy]] = None
 
-    def apply(): T
+  def apply(): T
 }

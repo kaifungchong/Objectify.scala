@@ -8,6 +8,6 @@ import org.objectify.HttpStatus.HttpStatus
  *
  * @author Joe Gaudet - (joe@learndot.com)
  */
-case class ObjectifyResponse(value: String,
-                             contentType: ContentType,
-                             httpStatus: HttpStatus)
+case class ResponderResult(value: String,
+                           contentType: ContentType,
+                           httpStatus: HttpStatus)

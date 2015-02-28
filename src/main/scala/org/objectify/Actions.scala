@@ -14,7 +14,7 @@ import org.objectify.policies.Policy
 import org.objectify.services.Service
 import mojolly.inflector.InflectorImports._
 import resolvers.ClassResolver
-import responders.{PolicyResponder, ServiceResponder}
+import org.objectify.responders.{GenericResponder, PolicyResponder, ServiceResponder}
 
 object HttpMethod extends Enumeration {
   type HttpMethod = Value
@@ -38,7 +38,7 @@ object HttpStatus extends Enumeration {
   val NotSet = Value(0);
   val Continue = Value(100)
   val SwitchingProtocols = Value(101)
-  val PROCESSING_102 = Value(102)
+  val Processing = Value(102)
 
   val Ok = Value(200)
   val Created = Value(201)
@@ -51,7 +51,6 @@ object HttpStatus extends Enumeration {
 
   val MultipleChoices = Value(300)
   val MovedPermanently = Value(301)
-  val MovedTemporarily = Value(302)
   val Found = Value(302)
   val SeeOther = Value(303)
   val NotModified = Value(304)
@@ -71,24 +70,23 @@ object HttpStatus extends Enumeration {
   val Gone = Value(410)
   val LengthRequired = Value(411)
   val PreconditionFailed = Value(412)
-  val RequestEntitygToo_Large = Value(413)
-  val RequestUrigToo_Long = Value(414)
-  val UnsupportedMediagType = Value(415)
-  val RequestedRangegNot_Satisfiable = Value(416)
+  val RequestEntityTooLarge = Value(413)
+  val RequestUriTooLong = Value(414)
+  val UnsupportedMediaType = Value(415)
+  val RequestedRangeNot_Satisfiable = Value(416)
   val ExpectationFailed = Value(417)
+  val EnhanceYourCalm = Value(420)
   val UnprocessableEntity = Value(422)
   val Locked = Value(423)
   val FailedDependency = Value(424)
 
-  val InternalServergError = Value(500)
+  val InternalServerError = Value(500)
   val NotImplemented = Value(501)
   val BadGateway = Value(502)
   val ServiceUnavailable = Value(503)
   val GatewayTimeout = Value(504)
-  val HttpVersiongNot_Supported = Value(505)
+  val HttpVersionNotSupported = Value(505)
   val InsufficientStorage = Value(507)
-
-
 }
 
 case class AcceptType(content: Option[ContentType.ContentType])
@@ -102,7 +100,6 @@ import ContentType._
  */
 case class Action(method: HttpMethod,
                   var name: String,
-                  contentType: ContentType = JSON,
                   var route: Option[String] = None,
                   var policies: Option[Map[Class[_ <: Policy], Class[_ <: PolicyResponder[_]]]] = None,
                   var service: Option[Class[_ <: Service[_]]] = None,
@@ -123,7 +120,7 @@ case class Action(method: HttpMethod,
 
   /**
    * Resolves the service class by either returning the preset service class
-   * or find the class based on the name of this action
+   * or finding the class based on the name of this action
    *
    * eg: pictures index => PicturesIndexService
    */
@@ -131,9 +128,19 @@ case class Action(method: HttpMethod,
     service.getOrElse(ClassResolver.resolveServiceClass(getSerivceClassName(name)))
   }
 
-  // similar with responders
+  /**
+   * Resolves the responder class by either returning the preset service class
+   * or finding the class based on the name of this action if that fails we get
+   * return the generic one.
+   *
+   * eg: pictures index => PicturesIndexResponder
+   */
   def resolveResponderClass: Class[_ <: ServiceResponder[_, _]] = {
-    responder.getOrElse(ClassResolver.resolveResponderClass(getResponderClassName(name)))
+    responder
+      .getOrElse(
+        ClassResolver.resolveResponderClassOption(getResponderClassName(name))
+          .getOrElse(classOf[GenericResponder])
+      )
   }
 
   /**
@@ -210,7 +217,7 @@ case class Actions() extends Iterable[Action] {
                  policies: Option[Map[Class[_ <: Policy], Class[_ <: PolicyResponder[_]]]] = None,
                  service: Option[Class[_ <: Service[_]]] = None, responder: Option[Class[_ <: ServiceResponder[_, _]]] = None,
                  ignoreGlobalPolicies: Boolean = false) {
-    val action = Action(httpMethod, name, contentType, Some(route), policies, service, responder, ignoreGlobalPolicies)
+    val action = Action(httpMethod, name, Some(route), policies, service, responder, ignoreGlobalPolicies)
 
     resolveRouteAndName(Some(action), "", route)
   }
@@ -453,17 +460,21 @@ case class Actions() extends Iterable[Action] {
       val service = action.resolveServiceClass
       val responder = action.resolveResponderClass
 
-      // make sure service and resolver are compatible
-      val returnType = service.getMethod("apply").getReturnType
-      try {
-        responder.getMethod("apply", returnType).getParameterTypes.head
-      }
-      catch {
-        case e: NoSuchMethodException =>
-          val parameterType = responder.getMethods.find(method => {
-            method.getName.startsWith("apply") && method.getParameterTypes.head != classOf[Object]
-          })
-          throw new ConfigurationException(s"Service [$service] and Responder [$responder] are not compatible. Service return type [$returnType] does not match Responder apply method parameter [${parameterType.getOrElse("Undefined")}].")
+      // tolerate generic responder
+      if (responder != classOf[GenericResponder]) {
+        // make sure service and resolver are compatible
+        val returnType = service.getMethod("apply").getReturnType
+        try {
+          responder.getMethod("apply", returnType).getParameterTypes.head
+        }
+        catch {
+          case e: NoSuchMethodException =>
+            e.printStackTrace()
+            val parameterType = responder.getMethods.find(method => {
+              method.getName.startsWith("apply") && method.getParameterTypes.head != classOf[Object]
+            })
+            throw new ConfigurationException(s"Service [$service] and Responder [$responder] are not compatible. Service return type [$returnType] does not match Responder apply method parameter [${parameterType.getOrElse("Undefined")}].")
+        }
       }
     }
   }

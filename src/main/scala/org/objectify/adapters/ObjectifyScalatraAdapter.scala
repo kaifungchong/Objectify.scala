@@ -76,10 +76,12 @@ trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploa
   error {
     case e: ObjectifyException => {
       status = e.status
+      e.printStackTrace()
       e.getMessage
     }
     case e: ObjectifyExceptionWithCause => {
       status = e.status
+      e.printStackTrace()
       e.getMessage
     }
   }

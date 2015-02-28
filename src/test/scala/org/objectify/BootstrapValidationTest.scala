@@ -57,15 +57,17 @@ class BootstrapValidationTest
       val thrown = the[ConfigurationException] thrownBy scalatrafied.bootstrap()
       thrown.getMessage should equal("No class matching the name: AsdfService")
     }
-    "Fail when responders don't exist" in {
+
+
+    "Pass when responders don't exist" in {
       scalatrafied.actions actionBase(Get, "asdf", "asdf",
         policies = None,
         service = -:[PicturesIndexService],
         responder = None
         )
-      val thrown = the[ConfigurationException] thrownBy scalatrafied.bootstrap()
-      thrown.getMessage should equal("No class matching the name: AsdfResponder")
     }
+
+
     "Fail when responders don't match up with services" in {
       scalatrafied.actions actionBase(Get, "asdf", "asdf",
         policies = None,

@@ -94,13 +94,6 @@ class ObjectifyScalatraAdapterTest
           header("Content-Type") should include("application/json")
         }
       }
-      "return overridden type" in {
-        scalatrafied.actions resource("pictures", index = Some(Action(Get, "index", ContentType.XML)))
-        scalatrafied.bootstrap()
-        get("/pictures") {
-          header("Content-Type") should include("application/xml")
-        }
-      }
     }
 
     "doing exceptional cases" should {

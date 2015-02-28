@@ -10,12 +10,12 @@ import org.objectify.{AcceptType, ContentType, HttpStatus}
  *
  * @author Joe Gaudet - (joe@learndot.com)
  */
-class GenericResponder(acceptType: AcceptType) extends ServiceResponder[ObjectifyResponse, Any] {
-  override def apply(serviceResult: Any): ObjectifyResponse = {
+class GenericResponder(acceptType: AcceptType) extends ServiceResponder[ResponderResult, Any] {
+  override def apply(serviceResult: Any): ResponderResult = {
     acceptType.content.getOrElse(JSON) match {
-      case XML => ObjectifyResponse(SerializerRegistry.toXML(serviceResult), ContentType.XML, HttpStatus.NotImplemented)
-      case JSON => ObjectifyResponse(SerializerRegistry.toJson(serviceResult), ContentType.JSON, HttpStatus.Ok)
-      case _ => ObjectifyResponse("Not Implemented", ContentType.XML, HttpStatus.NotImplemented)
+      case XML => ResponderResult(SerializerRegistry.toXML(serviceResult), ContentType.XML, HttpStatus.NotImplemented)
+      case JSON => ResponderResult(SerializerRegistry.toJson(serviceResult), ContentType.JSON, HttpStatus.Ok)
+      case _ => ResponderResult("Not Implemented", ContentType.XML, HttpStatus.NotImplemented)
     }
   }
 }
