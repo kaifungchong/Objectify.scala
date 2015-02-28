@@ -49,6 +49,11 @@
       <version>${scala.minor.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.codahale</groupId>
+      <artifactId>jerkson_${scala.version}</artifactId>
+      <version>0.6.4-Learndot</version>
+    </dependency>
+    <dependency>
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
       <version>0.9.8</version>
@@ -93,7 +98,6 @@
       <artifactId>util-logging_${scala.version}</artifactId>
       <version>${twitter.version}</version>
     </dependency>
-
     <dependency>
       <groupId>io.dropwizard.metrics</groupId>
       <artifactId>metrics-core</artifactId>
