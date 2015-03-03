@@ -9,14 +9,14 @@
 
 package org.objectify.resolvers
 
-import org.objectify.adapters.ObjectifyRequestAdapter
 import org.apache.commons.fileupload.FileItem
+import org.objectify.adapters.ObjectifyRequestAdapter
 
 /**
-  * Resolve a file being uploaded
-  */
+ * Resolve a file being uploaded
+ */
 class FileItemResolver extends Resolver[FileItem, ObjectifyRequestAdapter] {
-    def apply(req: ObjectifyRequestAdapter) = {
-        req.getFileParams.head._2
-    }
+  def apply(req: ObjectifyRequestAdapter) = {
+    req.getFileParams.head._2
+  }
 }

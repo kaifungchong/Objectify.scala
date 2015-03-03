@@ -9,10 +9,12 @@
 
 package org.objectify.adapters
 
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
 import org.objectify.HttpMethod
-import collection.JavaConversions
 import org.objectify.exceptions.BadRequestException
+
+import scala.collection.JavaConversions
 import scala.io.Source
 
 /**
@@ -25,14 +27,14 @@ class HttpServletRequestAdapter(request: HttpServletRequest, response: HttpServl
 
   def getQueryParameters = convertToScala(request.getParameterMap)
 
+  def convertToScala(map: java.util.Map[String, Array[String]]): Map[String, List[String]] = {
+    JavaConversions.mapAsScalaMap(map).map(entry => (entry._1, entry._2.toList)).toMap
+  }
+
   def getPathParameters = pathParameters
 
   def getHttpMethod = HttpMethod.values.find(_.toString.equalsIgnoreCase(request.getMethod))
     .getOrElse(throw new BadRequestException("Could not determine HTTP method."))
-
-  def convertToScala(map: java.util.Map[String, Array[String]]): Map[String, List[String]] = {
-    JavaConversions.mapAsScalaMap(map).map(entry => (entry._1, entry._2.toList)).toMap
-  }
 
   def getBody = {
     val encoding = request.getCharacterEncoding

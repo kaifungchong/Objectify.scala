@@ -9,17 +9,17 @@
 
 package org.objectify
 
-import adapters.ObjectifyScalatraAdapter
-import exceptions.ConfigurationException
-import org.scalatest.{Matchers, BeforeAndAfterEach, WordSpec}
+import org.junit.runner.RunWith
+import org.objectify.HttpMethod._
+import org.objectify.adapters.ObjectifyScalatraAdapter
+import org.objectify.exceptions.ConfigurationException
+import org.objectify.responders.ServiceResponder
+import org.objectify.services.PicturesIndexService
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.mock.MockitoSugar
+import org.scalatest.{BeforeAndAfterEach, Matchers, WordSpec}
 import org.scalatra.ScalatraFilter
 import org.scalatra.test.scalatest.ScalatraSuite
-import responders.ServiceResponder
-import services.PicturesIndexService
-import org.scalatest.mock.MockitoSugar
-import HttpMethod._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
 /**
  * Making sure bootstrap validation works correctly

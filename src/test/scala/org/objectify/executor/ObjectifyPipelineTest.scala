@@ -9,18 +9,18 @@
 
 package org.objectify.executor
 
-import org.scalatest.{Matchers, BeforeAndAfterEach, WordSpec}
-import org.scalatest.mock.MockitoSugar
-import org.objectify.HttpMethod._
-import org.mockito.Mockito._
-import org.objectify.policies.{AuthenticationPolicy, BadPolicy, GoodPolicy}
-import org.objectify.services.{NullService, PicturesIndexService}
-import org.objectify.responders.{PicturesIndexResponder, BadPolicyResponder}
-import org.objectify.adapters.ObjectifyRequestAdapter
-import org.objectify.HttpStatus._
-import org.objectify.{HttpStatus, ObjectifySugar, Action, Objectify}
-import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
+import org.mockito.Mockito._
+import org.objectify.HttpMethod._
+import org.objectify.HttpStatus._
+import org.objectify.adapters.ObjectifyRequestAdapter
+import org.objectify.policies.{AuthenticationPolicy, BadPolicy, GoodPolicy}
+import org.objectify.responders.{BadPolicyResponder, PicturesIndexResponder}
+import org.objectify.services.{NullService, PicturesIndexService}
+import org.objectify.{Action, HttpStatus, Objectify, ObjectifySugar}
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.mock.MockitoSugar
+import org.scalatest.{BeforeAndAfterEach, Matchers, WordSpec}
 
 /**
  * Testing the pipeline and sub-methods

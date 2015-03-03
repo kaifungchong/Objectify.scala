@@ -9,17 +9,16 @@
 
 package org.objectify.executor
 
+import javax.inject.Named
+
 import org.junit.runner.RunWith
+import org.objectify.ObjectifySugar
+import org.objectify.adapters.ObjectifyRequestAdapter
 import org.objectify.policies.Policy
 import org.objectify.resolvers._
-import org.objectify.ObjectifySugar
+import org.scalatest.{BeforeAndAfterEach, WordSpec}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.BeforeAndAfterEach
-import org.scalatest.WordSpec
-
-import javax.inject.Named
-import org.objectify.adapters.ObjectifyRequestAdapter
 
 @RunWith(classOf[JUnitRunner])
 class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar {

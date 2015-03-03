@@ -9,9 +9,10 @@
 
 package org.objectify.adapters
 
-import org.objectify.HttpMethod
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
 import org.apache.commons.fileupload.FileItem
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
+import org.objectify.HttpMethod
 
 /**
  * Adapter for requests

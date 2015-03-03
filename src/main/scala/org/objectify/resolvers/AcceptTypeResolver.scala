@@ -10,7 +10,7 @@
 package org.objectify.resolvers
 
 import org.objectify.adapters.ObjectifyRequestAdapter
-import org.objectify.{ContentType, AcceptType}
+import org.objectify.{AcceptType, ContentType}
 
 /**
  * Resolver for accept type

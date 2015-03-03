@@ -11,8 +11,6 @@ package org.objectify.executor
 
 import scala.reflect.ClassTag
 
-import reflect.runtime.universe._
-
 /**
  * This class is responsible for invoking instances of classes.
  */

@@ -9,8 +9,9 @@
 
 package org.objectify.adapters
 
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
 import org.objectify.executor.ObjectifyResponse
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 
 /**
  * Response adapter for String

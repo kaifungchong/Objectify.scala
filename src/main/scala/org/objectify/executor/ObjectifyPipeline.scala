@@ -12,16 +12,14 @@ package org.objectify.executor
 import com.twitter.logging.Logger
 import org.objectify.ContentType.ContentType
 import org.objectify.HttpStatus.HttpStatus
-import org.objectify.policies.Policy
-import org.objectify.services.Service
-import org.objectify.responders.{ResponderResult, PolicyResponder, ServiceResponder}
 import org.objectify.adapters.ObjectifyRequestAdapter
-import org.objectify.exceptions.{ObjectifyExceptionWithCause, ObjectifyException}
+import org.objectify.exceptions.{ObjectifyException, ObjectifyExceptionWithCause}
+import org.objectify.policies.Policy
+import org.objectify.responders.{PolicyResponder, ResponderResult, ServiceResponder}
+import org.objectify.services.Service
 import org.objectify.{Action, Objectify}
-import scala.reflect.ClassTag
 
-import reflect.runtime.universe._
-import scala.reflect.api.Universe
+import scala.reflect.ClassTag
 
 /**
  * This class is responsible for executing the pipeline for the lifecycle of a request.
@@ -56,16 +54,16 @@ class ObjectifyPipeline(objectify: Objectify) {
 
       val serviceClass = action.resolveServiceClass
 
-//      val typeConstructor = typeOf[serviceClass.type].typeConstructor
-//
-//      logger.info("Trying to spew out param names for : " + serviceClass)
-//
-//      val m = runtimeMirror(getClass.getClassLoader)
-//      val cm = m.reflect(serviceClass)
-//
-//      typeConstructor.members.filter(!_.isMethod).foreach(param => {
-//        logger.info(param.name.toString)
-//      })
+      //      val typeConstructor = typeOf[serviceClass.type].typeConstructor
+      //
+      //      logger.info("Trying to spew out param names for : " + serviceClass)
+      //
+      //      val m = runtimeMirror(getClass.getClassLoader)
+      //      val cm = m.reflect(serviceClass)
+      //
+      //      typeConstructor.members.filter(!_.isMethod).foreach(param => {
+      //        logger.info(param.name.toString)
+      //      })
 
       val service = instantiate[Service[_]](action.resolveServiceClass, req)
 

@@ -9,9 +9,10 @@
 
 package org.objectify.adapters
 
-import org.objectify.executor.ObjectifyResponse
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
 import org.objectify.ContentType._
+import org.objectify.executor.ObjectifyResponse
 import org.objectify.resolvers.ClassResolver
 import org.objectify.responders.ResponderResult
 

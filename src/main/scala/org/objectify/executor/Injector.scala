@@ -11,13 +11,12 @@ package org.objectify.executor
 
 import java.lang.reflect.{Constructor, ParameterizedType}
 import javax.inject.Named
+
 import org.objectify.annotations.ResolveWith
 import org.objectify.resolvers.{ClassResolver, Resolver}
 
 import scala.collection.mutable.ListBuffer
 import scala.reflect.{ClassTag, classTag}
-
-import reflect.runtime.universe._
 
 /**
  * This object is responsible for finding, instantiating and executing resolvers for the given constructor

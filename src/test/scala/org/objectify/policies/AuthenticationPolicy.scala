@@ -12,10 +12,10 @@ package org.objectify.policies
 import javax.inject.Named
 
 /**
-  * Sample policy
-  */
+ * Sample policy
+ */
 class AuthenticationPolicy(@Named("CurrentUser") user: String, string: String) extends Policy {
-    def isAllowed = {
-        user != null && string != null
-    }
+  def isAllowed = {
+    user != null && string != null
+  }
 }

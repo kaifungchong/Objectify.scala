@@ -10,8 +10,8 @@
 package org.objectify.policies
 
 /**
-  * Sample policy
-  */
+ * Sample policy
+ */
 class GoodPolicy extends Policy {
-    def isAllowed = true
+  def isAllowed = true
 }

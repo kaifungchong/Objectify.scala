@@ -9,11 +9,10 @@
 
 package org.objectify
 
-import adapters.{ObjectifyResponseAdapter, ObjectifyRequestAdapter}
-import executor.{ObjectifyResponse, ObjectifyPipeline}
 import com.twitter.logging.Logger
-import resolvers.ClassResolver
-import responders.ServiceResponder
+import org.objectify.adapters.ObjectifyRequestAdapter
+import org.objectify.executor.{ObjectifyPipeline, ObjectifyResponse}
+import org.objectify.responders.ServiceResponder
 
 /**
  * Main Objectify object for extending with your framework of choice
@@ -21,6 +20,7 @@ import responders.ServiceResponder
 case class Objectify(defaults: Defaults = Defaults(), actions: Actions = Actions())
   extends ObjectifySugar with ObjectifyImplicits {
   private val logger = Logger(classOf[Objectify])
+  var postServiceHook = (serviceResult: Any, responder: ServiceResponder[_, _]) => {}
 
   override def toString = {
     "Objectify Configuration" + actions.toString
@@ -55,7 +55,4 @@ case class Objectify(defaults: Defaults = Defaults(), actions: Actions = Actions
       logger.info(s"Request [${requestAdapter.getHttpMethod.toString.toUpperCase}: $path] took [$requestTime ms] for action [$action].")
     }
   }
-
-
-  var postServiceHook = (serviceResult: Any, responder: ServiceResponder[_, _]) => {}
 }

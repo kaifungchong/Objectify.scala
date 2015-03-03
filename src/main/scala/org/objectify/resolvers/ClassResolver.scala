@@ -9,23 +9,25 @@
 
 package org.objectify.resolvers
 
-import org.reflections.Reflections
-import scala.collection.JavaConversions._
-import org.objectify.policies.Policy
-import org.objectify.services.Service
-import org.objectify.responders.ServiceResponder
-import org.reflections.util.{ClasspathHelper, ConfigurationBuilder}
+import java.io.FileNotFoundException
+import java.lang.reflect.ParameterizedType
+import java.net.URL
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
+import com.twitter.logging.Logger
 import org.objectify.adapters.ObjectifyResponseAdapter
 import org.objectify.exceptions.ConfigurationException
-import org.reflections.scanners.{SubTypesScanner, ResourcesScanner}
-import org.streum.configrity._
-import java.net.URL
-import java.io.FileNotFoundException
-import yaml.YAMLFormat
-import com.twitter.logging.Logger
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import org.objectify.executor.ObjectifyResponse
-import java.lang.reflect.ParameterizedType
+import org.objectify.policies.Policy
+import org.objectify.responders.ServiceResponder
+import org.objectify.services.Service
+import org.reflections.Reflections
+import org.reflections.scanners.{ResourcesScanner, SubTypesScanner}
+import org.reflections.util.{ClasspathHelper, ConfigurationBuilder}
+import org.streum.configrity._
+import org.streum.configrity.yaml.YAMLFormat
+
+import scala.collection.JavaConversions._
 
 /**
  * This class is responsible for loading all the pertinent classes that need to be resolved or injected,
@@ -50,6 +52,14 @@ object ClassResolver {
     resolveClass(string, services)
   }
 
+  private def resolveClass[T](className: String, set: Set[Class[T]]): Class[T] = {
+    resolveClassOption(className, set).getOrElse(throw new ConfigurationException("No class matching the name: " + className))
+  }
+
+  private def resolveClassOption[T](className: String, set: Set[Class[T]]): Option[Class[T]] = {
+    set.find(_.getSimpleName.matches(className))
+  }
+
   def resolveResponderClass(string: String) = {
     resolveClass(string, responders)
   }
@@ -60,10 +70,6 @@ object ClassResolver {
 
   def locateResponseAdapter[T](response: ObjectifyResponse[T]): ObjectifyResponseAdapter[T] = {
     resolveResponseAdapter(response.entity.getClass).newInstance().asInstanceOf[ObjectifyResponseAdapter[T]]
-  }
-
-  def resolveResolverClass[T, P](name: String, returnType: Class[T], paramType: Class[P]): Class[Resolver[_, P]] = {
-    resolveClassWithReturn(name, "apply", returnType, paramType, resolvers).asInstanceOf[Class[Resolver[_, P]]]
   }
 
   def resolveResponseAdapter[T](genericType: Class[T]): Class[ObjectifyResponseAdapter[T]] = {
@@ -89,13 +95,8 @@ object ClassResolver {
           .format(methodName, paramTypes, returnType)))
   }
 
-  private def resolveClass[T](className: String, set: Set[Class[T]]): Class[T] = {
-    resolveClassOption(className, set).getOrElse(throw new ConfigurationException("No class matching the name: " + className))
-  }
-
-
-  private def resolveClassOption[T](className: String, set: Set[Class[T]]): Option[Class[T]] = {
-    set.find(_.getSimpleName.matches(className))
+  def resolveResolverClass[T, P](name: String, returnType: Class[T], paramType: Class[P]): Class[Resolver[_, P]] = {
+    resolveClassWithReturn(name, "apply", returnType, paramType, resolvers).asInstanceOf[Class[Resolver[_, P]]]
   }
 
   private def resolveClassWithReturn[T, R, P](className: String, methodName: String, returnType: Class[R],

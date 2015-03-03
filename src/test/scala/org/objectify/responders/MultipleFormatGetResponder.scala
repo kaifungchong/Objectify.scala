@@ -9,13 +9,11 @@
 
 package org.objectify.responders
 
-import org.objectify.adapters._
-import org.objectify.ContentType._
-import org.objectify.adapters.XmlResponse
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
 import org.objectify.AcceptType
-import org.objectify.adapters.JsonResponse
-import org.objectify.adapters.FormattedResponse
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
+import org.objectify.ContentType._
+import org.objectify.adapters.{FormattedResponse, JsonResponse, XmlResponse, _}
 import org.objectify.executor.ObjectifyResponse
 
 /**

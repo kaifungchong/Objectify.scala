@@ -9,10 +9,10 @@
 
 package org.objectify.adapters
 
+import org.apache.commons.fileupload.FileItem
 import org.objectify.HttpMethod
 import org.objectify.exceptions.BadRequestException
-import org.scalatra.servlet.{RichResponse, RichRequest}
-import org.apache.commons.fileupload.FileItem
+import org.scalatra.servlet.{RichRequest, RichResponse}
 
 /**
  * Scalatrafied Request!
