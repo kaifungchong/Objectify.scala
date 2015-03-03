@@ -138,17 +138,7 @@ case class Action(method: HttpMethod,
   }
 
   override def toString = {
-    val stringBuilder = new StringBuilder()
-    stringBuilder.append("Actions(")
-    stringBuilder.append(method)
-    stringBuilder.append(',')
-    stringBuilder.append(name)
-    stringBuilder.append(',')
-    stringBuilder.append(route.getOrElse("NO ROUTE"))
-    stringBuilder.append(',')
-    stringBuilder.append(resolveServiceClass)
-    stringBuilder.append(")")
-    stringBuilder.toString()
+    s"Action($method, ${route.getOrElse("NO ROUTE")}, ${resolveServiceClass.getSimpleName}})"
   }
 
   /**
@@ -496,5 +486,7 @@ case class Actions() extends Iterable[Action] {
         this
       }
     }
+
   }
+
 }

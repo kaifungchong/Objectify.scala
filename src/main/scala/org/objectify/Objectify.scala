@@ -48,8 +48,6 @@ case class Objectify(defaults: Defaults = Defaults(), actions: Actions = Actions
 
       val queryString = Option(requestAdapter.getRequest.getQueryString)
 
-      println(requestAdapter.getRequest.getRequestURI)
-
       val path = s"${requestAdapter.getPath}${queryString.map(s => s"?$s").getOrElse("")}"
 
       logger.info(s"Request [${requestAdapter.getHttpMethod.toString.toUpperCase}: $path] took [$requestTime ms] for action [$action].")

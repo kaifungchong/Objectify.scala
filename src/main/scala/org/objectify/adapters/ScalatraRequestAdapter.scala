@@ -23,7 +23,7 @@ class ScalatraRequestAdapter(request: RichRequest,
                              fileParams: Option[collection.Map[String, FileItem]] = None)
   extends ObjectifyRequestAdapter {
 
-  def getPath = request.uri.toString
+  def getPath = request.r.getRequestURI
 
   def getQueryParameters = request.multiParameters.map(entry => (entry._1, entry._2.toList))
 
