@@ -9,6 +9,7 @@
 
 package org.objectify.executor
 
+import com.twitter.logging.Logger
 import org.objectify.ContentType.ContentType
 import org.objectify.HttpStatus.HttpStatus
 import org.objectify.policies.Policy
@@ -19,10 +20,15 @@ import org.objectify.exceptions.{ObjectifyExceptionWithCause, ObjectifyException
 import org.objectify.{Action, Objectify}
 import scala.reflect.ClassTag
 
+import reflect.runtime.universe._
+import scala.reflect.api.Universe
+
 /**
  * This class is responsible for executing the pipeline for the lifecycle of a request.
  */
 class ObjectifyPipeline(objectify: Objectify) {
+
+  private val logger = Logger(classOf[ObjectifyPipeline])
 
   def handleRequest(action: Action, req: ObjectifyRequestAdapter): ObjectifyResponse[_] = {
     // determine which policies to execute -- globals + action defaults or globals + action overrides
@@ -47,6 +53,20 @@ class ObjectifyPipeline(objectify: Objectify) {
     }
     // else execute the service call
     else {
+
+      val serviceClass = action.resolveServiceClass
+
+//      val typeConstructor = typeOf[serviceClass.type].typeConstructor
+//
+//      logger.info("Trying to spew out param names for : " + serviceClass)
+//
+//      val m = runtimeMirror(getClass.getClassLoader)
+//      val cm = m.reflect(serviceClass)
+//
+//      typeConstructor.members.filter(!_.isMethod).foreach(param => {
+//        logger.info(param.name.toString)
+//      })
+
       val service = instantiate[Service[_]](action.resolveServiceClass, req)
 
       val responder = try {
@@ -60,7 +80,9 @@ class ObjectifyPipeline(objectify: Objectify) {
       }
 
       // get the service result
-      val serviceResult = service()
+      val serviceResult = service(
+
+      )
 
       // execute post service (pre-responder hook)
       objectify.postServiceHook(serviceResult, responder)
