@@ -14,24 +14,26 @@ import org.apache.commons.fileupload.FileItem
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 
 /**
-  * Adapter for requests
-  */
+ * Adapter for requests
+ */
 trait ObjectifyRequestAdapter {
-    def getPath: String
+  def getPath: String
 
-    def getQueryParameters: Map[String, List[String]]
+  def getQueryParameters: Map[String, List[String]]
 
-    def getPathParameters: Map[String, String]
+  def getPathParameters: Map[String, String]
 
-    def getHttpMethod: HttpMethod.Value
+  def getHttpMethod: HttpMethod.Value
 
-    def getBody: String
+  def getBody: String
 
-    def getFileParams: Map[String, FileItem]
+  def getFileParams: Map[String, FileItem]
 
-    def getCookies: Map[String, String]
+  def getCookies: Map[String, String]
 
-    def getResponse: HttpServletResponse
+  def getResponse: HttpServletResponse
 
-    def getRequest: HttpServletRequest
+  def getRequest: HttpServletRequest
+
+  def getHeader(string: String): Option[String]
 }

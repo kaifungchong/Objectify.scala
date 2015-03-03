@@ -11,6 +11,8 @@ package org.objectify.executor
 
 import scala.reflect.ClassTag
 
+import reflect.runtime.universe._
+
 /**
  * This class is responsible for invoking instances of classes.
  */
@@ -25,6 +27,7 @@ private[executor] object Invoker {
    * @return - a dependency-injected instance
    */
   def invoke[T, P: ClassTag](clazz: Class[_ <: T], resolverParam: P): T = {
+
     /*
 1. find the constructor annotations
 2. for each constructor annotation, instantiate a resolver and pass it the above parameter
@@ -32,8 +35,16 @@ private[executor] object Invoker {
 4. return instance
  */
 
+    //    val tCons = clazz.type.typeConstructor
+    //
+    //    val params = tCons.members.filter(symbol => symbol.isParameter)
+    //    println(params)
+
+
     // assume only one constructor
     val constructor = clazz.getConstructors.head
+
+
     val injectedValues = Injector.getInjectedResolverParams(constructor, resolverParam)
 
     if (injectedValues.nonEmpty) {
