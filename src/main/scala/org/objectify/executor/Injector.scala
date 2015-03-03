@@ -17,6 +17,8 @@ import org.objectify.resolvers.{ClassResolver, Resolver}
 import scala.collection.mutable.ListBuffer
 import scala.reflect.{ClassTag, classTag}
 
+import reflect.runtime.universe._
+
 /**
  * This object is responsible for finding, instantiating and executing resolvers for the given constructor
  */
@@ -62,19 +64,19 @@ private[executor] object Injector {
     constructorValues.toList
   }
 
-  def invokeParameter[P: ClassTag](paramAnnotation: Option[java.lang.annotation.Annotation], paramType: Class[_],
-                                   resolverParam: P, genericTypes: Option[Seq[Class[_]]] = None): Any = {
+  def invokeParameter[P: ClassTag](
+                                    paramAnnotation: Option[java.lang.annotation.Annotation],
+                                    paramType: Class[_],
+                                    resolverParam: P,
+                                    genericTypes: Option[Seq[Class[_]]] = None
+                                    ): Any = {
     // if annotated, easy to find resolver
     if (paramAnnotation.isDefined && (paramAnnotation.get.isInstanceOf[Named] || paramAnnotation.get.isInstanceOf[ResolveWith])) {
-      val resolverName =
-        if (paramAnnotation.get.isInstanceOf[Named]) {
-          val namedAnno = paramAnnotation.get.asInstanceOf[Named]
-          namedAnno.value() + "Resolver"
-        }
-        else {
-          val resolveWithAnno = paramAnnotation.get.asInstanceOf[ResolveWith]
-          resolveWithAnno.value()
-        }
+      val resolverName = paramAnnotation.get match {
+        case namedAnnotation: Named => namedAnnotation.value() + "Resolver"
+        case resolvedWith: ResolveWith => resolvedWith.value()
+        case _ => "OhNo"
+      }
 
       val resolver: Class[Resolver[_, P]] = ClassResolver.resolveResolverClass(
         resolverName,
