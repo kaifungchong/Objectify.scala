@@ -6,10 +6,13 @@
 
 package org.objectify.services
 
-class ResultWithValue(value: Any,
-                      message: Option[String] = None,
-                      error: Option[String] = None
-                       ) extends Result(message, error) {
+case class ResultWithValue(value: Any,
+                           message: Option[String] = None,
+                           error: Option[String] = None) {
+  lazy val status = error match {
+    case Some(s) => ResultStatus.Failed
+    case None => ResultStatus.Ok
+  }
 }
 
 object ResultWithValue {
@@ -18,23 +21,31 @@ object ResultWithValue {
     new ResultWithValue(value, error = Some(error))
   }
 
-  def failed(value: Any): ResultWithValue = {
-    failed(value)
+  def failed(error: String, value: (Any, Any)*): ResultWithValue = {
+    new ResultWithValue(value.foldLeft(Map[Any, Any]())((map, tuple) => map + tuple), None, Some(error))
+  }
+
+  def ok(value: (Any, Any)*): ResultWithValue = {
+    new ResultWithValue(value.foldLeft(Map[Any, Any]())((map, tuple) => map + tuple), None, None)
   }
 
   def ok(value: Any): ResultWithValue = {
-    ok(value, "")
+    new ResultWithValue(value, None, None)
   }
 
   def ok(value: Map[Any, Any]): ResultWithValue = {
-    ok(value, "")
+    new ResultWithValue(value, None, None)
   }
 
-  def ok(value: Map[Any, Any], message: String): ResultWithValue = {
-    ok(value, message)
+  def ok(message: String, value: (Any, Any)*): ResultWithValue = {
+    new ResultWithValue(value.foldLeft(Map[Any, Any]())((map, tuple) => map + tuple), Some(message), None)
   }
 
-  def ok(value: Any, message: String): ResultWithValue = {
+  def ok(message: String, value: Map[Any, Any]): ResultWithValue = {
+    ok(message, value)
+  }
+
+  def ok(message: String, value: Any): ResultWithValue = {
     new ResultWithValue(value, Some(message), None)
   }
 

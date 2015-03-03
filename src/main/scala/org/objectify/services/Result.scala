@@ -13,6 +13,7 @@ object ResultStatus extends Enumeration {
   val Failed = Value("Failed")
 }
 
+
 case class Result(message: Option[String] = None,
                   error: Option[String] = None) {
   lazy val status = error match {
