@@ -25,6 +25,8 @@ class ScalatraRequestAdapter(request: RichRequest,
 
   def getPath = request.pathInfo
 
+  def getUri = request.uri.toString
+
   def getQueryParameters = request.multiParameters.map(entry => (entry._1, entry._2.toList))
 
   def getPathParameters = pathParameters

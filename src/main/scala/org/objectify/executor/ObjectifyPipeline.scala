@@ -32,10 +32,12 @@ class ObjectifyPipeline(objectify: Objectify) {
     // determine which policies to execute -- globals + action defaults or globals + action overrides
     val policiesToExecute = getPolicies(action)
 
-    // execute policies
+    // execute
+    logger.debug("Executing Policies")
     val policyResponders = {
       for {(policy, responder) <- policiesToExecute
-           if !instantiate[Policy](policy, req).isAllowed} yield (policy, responder)
+           if !instantiate[Policy](policy, req).isAllowed
+      } yield (policy, responder)
     }
 
 
@@ -65,22 +67,17 @@ class ObjectifyPipeline(objectify: Objectify) {
       //        logger.info(param.name.toString)
       //      })
 
-      val service = instantiate[Service[_]](action.resolveServiceClass, req)
+      logger.debug("Instantiating Service Class")
+      val service = instantiate[Service[_]](serviceClass, req)
+      logger.debug("Done")
 
-      val responder = try {
-        instantiate[ServiceResponder[_, _]](action.resolveResponderClass, req)
-      }
-      catch {
-        case e: Throwable => {
-          e.printStackTrace()
-          instantiate[ServiceResponder[_, _]](action.resolveResponderClass, req)
-        }
-      }
+      val responder = instantiate[ServiceResponder[_, _]](action.resolveResponderClass, req)
 
+      logger.debug(s"Executing service $serviceClass")
       // get the service result
-      val serviceResult = service(
+      val serviceResult = service()
 
-      )
+      logger.debug(s"Result $serviceResult")
 
       // execute post service (pre-responder hook)
       objectify.postServiceHook(serviceResult, responder)
@@ -90,7 +87,6 @@ class ObjectifyPipeline(objectify: Objectify) {
         case responderResult: ResponderResult => (responderResult.value, responderResult.httpStatus, responder.contentType)
         case a: Any => (a, responder.status, responder.contentType)
       }
-
 
       generateResponse(result, status, contentType)
     }
@@ -111,7 +107,11 @@ class ObjectifyPipeline(objectify: Objectify) {
   }
 
   private def instantiate[T: ClassTag](klass: Class[_ <: T], req: ObjectifyRequestAdapter): T = {
-    Invoker.invoke(klass, req)
+    logger.debug("Instantiating Class: " + klass.getSimpleName)
+    val result = Invoker.invoke(klass, req)
+    logger.debug("Finished Instantiating Class: " + result)
+
+    result
   }
 
   def generateResponse[T: ClassTag](content: T, status: HttpStatus, contentType: ContentType): ObjectifyResponse[T] = {

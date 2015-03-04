@@ -18,7 +18,21 @@ import org.objectify.HttpMethod
  * Adapter for requests
  */
 trait ObjectifyRequestAdapter {
+
+  //  private var _cached: Map[String, Any] = Map.empty
+  //
+  //  def cached: Map[String, Any] = _cached
+  //
+  //  def cached[T](key: String, valueOpt: Option[T]): Option[T] =
+  //    valueOpt match {
+  //      case Some(value) => _cached = _cached + (key -> value)
+  //      case None => _cached(key)
+  //    }
+
+
   def getPath: String
+
+  def getUri: String
 
   def getQueryParameters: Map[String, List[String]]
 

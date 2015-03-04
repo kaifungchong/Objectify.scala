@@ -31,6 +31,8 @@ class HttpServletRequestAdapter(request: HttpServletRequest, response: HttpServl
     JavaConversions.mapAsScalaMap(map).map(entry => (entry._1, entry._2.toList)).toMap
   }
 
+  def getUri = request.getRequestURI
+
   def getPathParameters = pathParameters
 
   def getHttpMethod = HttpMethod.values.find(_.toString.equalsIgnoreCase(request.getMethod))

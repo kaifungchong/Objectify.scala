@@ -24,7 +24,7 @@ private[executor] object Invoker {
    * @param resolverParam - the resolver parameter to inject the constructor of the resolver with
    * @return - a dependency-injected instance
    */
-  def invoke[T, P: ClassTag](clazz: Class[_ <: T], resolverParam: P): T = {
+  def invoke[T, P: ClassTag](clazz: Class[_ <: T], resolverParam: P, prefix: String = ""): T = {
 
     /*
 1. find the constructor annotations
@@ -38,20 +38,18 @@ private[executor] object Invoker {
     //    val params = tCons.members.filter(symbol => symbol.isParameter)
     //    println(params)
 
-
     // assume only one constructor
     val constructor = clazz.getConstructors.head
 
 
-    val injectedValues = Injector.getInjectedResolverParams(constructor, resolverParam)
+    val injectedValues = Injector.getInjectedResolverParams(constructor, resolverParam, prefix)
 
-    if (injectedValues.nonEmpty) {
+    val ret = if (injectedValues.nonEmpty) {
       // convert list to var args
 
       val ret = constructor.newInstance(injectedValues.map {
         _.asInstanceOf[AnyRef]
       }: _*).asInstanceOf[T]
-
 
       ret
     }
@@ -59,6 +57,9 @@ private[executor] object Invoker {
       // assume there is no parameterized constructor
       clazz.newInstance()
     }
+
+
+    ret
   }
 
   def invoke[T](klass: Class[_ <: T]): T = {
