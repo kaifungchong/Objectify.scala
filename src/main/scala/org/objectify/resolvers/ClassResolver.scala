@@ -91,8 +91,7 @@ object ClassResolver {
             p.asInstanceOf[ParameterizedType].getActualTypeArguments.exists(_.equals(genericType))
         })
     }).getOrElse(
-        throw new ConfigurationException("No class matching method [%s] param type [%s] return type [%s]"
-          .format(methodName, paramTypes, returnType)))
+        throw new ConfigurationException(s"No class matching method [$methodName] param type [$paramTypes] return type [$returnType]"))
   }
 
   def resolveResolverClass[T, P](name: String, returnType: Class[T], paramType: Class[P]): Class[Resolver[_, P]] = {
@@ -103,8 +102,7 @@ object ClassResolver {
                                               paramType: Class[P], set: Set[Class[T]]): Class[T] = {
     set.find(target =>
       target.getSimpleName.matches(className) && target.getMethod(methodName, paramType).getReturnType.equals(returnType))
-      .getOrElse(throw new ConfigurationException("No class matching name [%s] method [%s] param type [%s] return type [%s]"
-      .format(className, methodName, paramType, returnType)))
+      .getOrElse(throw new ConfigurationException(s"No class matching name [$className] method [$methodName] param type [$paramType] return type [$returnType]"))
   }
 
   private def subClassesOf[T](klass: Class[T]): Set[Class[T]] = {

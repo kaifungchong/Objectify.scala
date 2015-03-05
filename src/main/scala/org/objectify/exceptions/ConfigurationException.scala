@@ -14,5 +14,5 @@ package org.objectify.exceptions
  *
  * This exception is mapped to a 500 status code.
  */
-class ConfigurationException(msg: String) extends ObjectifyException(500, msg) {
+case class ConfigurationException(msg: String) extends ObjectifyException(500, msg) {
 }
