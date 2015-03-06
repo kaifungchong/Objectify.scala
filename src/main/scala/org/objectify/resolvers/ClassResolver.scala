@@ -94,16 +94,17 @@ object ClassResolver {
         throw new ConfigurationException(s"No class matching method [$methodName] param type [$paramTypes] return type [$returnType]"))
   }
 
-  def resolveResolverClass[T, P](name: String, returnType: Class[T], paramType: Class[P]): Class[Resolver[_, P]] = {
-    resolveClassWithReturn(name, "apply", returnType, paramType, resolvers).asInstanceOf[Class[Resolver[_, P]]]
+  def resolveResolverClass[T, P](name: String, returnType: Class[T], paramType: Class[P]): Option[Class[Resolver[_, P]]] = {
+    resolveClassWithReturn(name, "apply", returnType, paramType, resolvers).asInstanceOf[Option[Class[Resolver[_, P]]]]
   }
 
   private def resolveClassWithReturn[T, R, P](className: String, methodName: String, returnType: Class[R],
-                                              paramType: Class[P], set: Set[Class[T]]): Class[T] = {
-    set.find(target =>
-      target.getSimpleName.matches(className) && target.getMethod(methodName, paramType).getReturnType.equals(returnType))
-      .getOrElse(throw new ConfigurationException(s"No class matching name [$className] method [$methodName] param type [$paramType] return type [$returnType]"))
+                                              paramType: Class[P], set: Set[Class[T]]): Option[Class[T]] = {
+    set.find(target => target.getSimpleName.matches(className) && target.getMethod(methodName, paramType).getReturnType.equals(returnType))
   }
+
+
+  //    .getOrElse(throw new ConfigurationException(s"No class matching name [$className] method [$methodName] param type [$paramType] return type [$returnType]"))
 
   private def subClassesOf[T](klass: Class[T]): Set[Class[T]] = {
     val set = reflections.getSubTypesOf(klass).toSet

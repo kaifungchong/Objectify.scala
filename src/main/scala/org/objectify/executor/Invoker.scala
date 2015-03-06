@@ -41,7 +41,6 @@ private[executor] object Invoker {
     // assume only one constructor
     val constructor = clazz.getConstructors.head
 
-
     val injectedValues = Injector.getInjectedResolverParams(constructor, resolverParam, prefix)
 
     val ret = if (injectedValues.nonEmpty) {

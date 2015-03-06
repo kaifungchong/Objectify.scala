@@ -11,24 +11,35 @@ package org.objectify.executor
 
 import javax.inject.Named
 
+import com.twitter.logging.{Level, Logger}
 import org.junit.runner.RunWith
 import org.objectify.ObjectifySugar
 import org.objectify.adapters.ObjectifyRequestAdapter
 import org.objectify.policies.Policy
 import org.objectify.resolvers._
-import org.scalatest.{BeforeAndAfterEach, WordSpec}
+import org.objectify.resolvers.matching.IdMatchingResolver
+import org.scalatest.{ShouldMatchers, BeforeAndAfterEach, WordSpec}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
+import org.mockito.Mockito._
+
 
 @RunWith(classOf[JUnitRunner])
-class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar {
+class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar with ObjectifySugar with ShouldMatchers {
+
+  val logger = Logger("")
+  logger.setLevel(Level.TRACE)
+
   val stringResolverActual = new StringResolver().apply(null)
   val currentUserResolverActual = new CurrentUserResolver().apply(null)
   val listStringResolverActual = new ListStringResolver().apply(null)
   val listCurrentUserResolverActual = new ListCurrentUserResolver().apply(null)
   val optionListStringResolverActual = new OptionListStringResolver().apply(null)
   val optionListCurrentUserResolverActual = new OptionListCurrentUserResolver().apply(null)
+
+
   val resolverParamMock = mock[ObjectifyRequestAdapter]
+
 
   "Injector" should {
     "resolve type" in {
@@ -70,6 +81,7 @@ class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar wi
       assert(Injector.getInjectedResolverParams(manifest[TestPolicyGeneric2].runtimeClass.getConstructors.head, resolverParamMock)
         .asInstanceOf[List[String]].equals(List(stringResolverActual, listCurrentUserResolverActual)))
     }
+
     "resolve generic named annotation and generic type" in {
       assert(Injector.getInjectedResolverParams(manifest[TestPolicyGeneric3].runtimeClass.getConstructors.head, resolverParamMock)
         .asInstanceOf[List[String]].equals(List(listStringResolverActual, listCurrentUserResolverActual)))
@@ -79,24 +91,40 @@ class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar wi
       val params = Injector.getInjectedResolverParams(manifest[TestPolicyGeneric4].runtimeClass.getConstructors.head, resolverParamMock)
       assert(params.asInstanceOf[List[Option[List[String]]]].equals(List(optionListStringResolverActual, optionListCurrentUserResolverActual)))
     }
+
+    "resolve named match params" in {
+      val idResolverParamMock = mock[ObjectifyRequestAdapter]
+      when(idResolverParamMock.getPathParameters).thenReturn(Map("id" -> "1"))
+      val idResolverActual = new IdMatchingResolver("Id").apply(idResolverParamMock)
+
+      val resolvedParam = Injector.getInjectedResolverParams(manifest[TestPolicyWithGenericId].runtimeClass.getConstructors.head, idResolverParamMock)
+      resolvedParam should equal(List(idResolverActual))
+    }
+
+    "resolve named match params with specific name" in {
+
+      val idResolverParamMock = mock[ObjectifyRequestAdapter]
+      when(idResolverParamMock.getPathParameters).thenReturn(Map("courseId" -> "1"))
+      val idResolverActual = new IdMatchingResolver("courseId").apply(idResolverParamMock)
+
+      val resolvedParam = Injector.getInjectedResolverParams(manifest[TestPolicyWithGenericCourseId].runtimeClass.getConstructors.head, idResolverParamMock)
+      resolvedParam should equal(List(idResolverActual))
+    }
   }
 }
 
-private class TestPolicy1(string: String) extends Policy {
-  def isAllowed = true
+
+private class UnityPolicy extends Policy {
+  override def isAllowed = true
 }
 
-private class TestPolicy2(@Named("CurrentUser") string: String) extends Policy {
-  def isAllowed = true
-}
+private class TestPolicy1(string: String) extends UnityPolicy
 
-private class TestPolicy3(@Named("CurrentUser") user: String, string: String) extends Policy {
-  def isAllowed = true
-}
+private class TestPolicy2(@Named("CurrentUser") string: String) extends UnityPolicy
 
-private class TestPolicy4(string: String, @Named("CurrentUser") user: String) extends Policy {
-  def isAllowed = true
-}
+private class TestPolicy3(@Named("CurrentUser") user: String, string: String) extends UnityPolicy
+
+private class TestPolicy4(string: String, @Named("CurrentUser") user: String) extends UnityPolicy
 
 private class TestPolicy5(string1: String,
                           @Named("CurrentUser") user1: String,
@@ -106,24 +134,20 @@ private class TestPolicy5(string1: String,
                           string2: String,
                           string3: String,
                           @Named("CurrentUser") user4: String)
-  extends Policy {
-  def isAllowed = true
-}
+  extends UnityPolicy
 
-private class TestPolicyGeneric1(string: List[String], @Named("CurrentUser") user: String) extends Policy {
-  def isAllowed = true
-}
+private class TestPolicyGeneric1(string: List[String], @Named("CurrentUser") user: String) extends UnityPolicy
 
-private class TestPolicyGeneric2(string: String, @Named("ListCurrentUser") user: List[String]) extends Policy {
-  def isAllowed = true
-}
+private class TestPolicyGeneric2(string: String, @Named("ListCurrentUser") user: List[String]) extends UnityPolicy
 
-private class TestPolicyGeneric3(string: List[String], @Named("ListCurrentUser") user: List[String]) extends Policy {
-  def isAllowed = true
-}
+private class TestPolicyGeneric3(string: List[String], @Named("ListCurrentUser") user: List[String]) extends UnityPolicy
 
-private class TestPolicyGeneric4(string: Option[List[String]], @Named("OptionListCurrentUser") user: Option[List[String]]) extends Policy {
-  def isAllowed = true
-}
+private class TestPolicyGeneric4(string: Option[List[String]], @Named("OptionListCurrentUser") user: Option[List[String]]) extends UnityPolicy
 
+private class TestPolicyWithGenericId(@Named("Id") id: Int) extends UnityPolicy
 
+private class TestPolicyWithGenericCourseId(@Named("courseId") courseId: Int) extends UnityPolicy
+
+private class TestPolicyWithGenericIds(@Named("Ids") id: List[Int]) extends UnityPolicy
+
+private class TestPolicyWithGenericCourseIds(@Named("courseIds") id: List[Int]) extends UnityPolicy
