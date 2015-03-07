@@ -14,7 +14,6 @@ import javax.inject.Named
 
 import com.twitter.logging.Logger
 import org.objectify.adapters.ObjectifyRequestAdapter
-import org.objectify.annotations.ResolveWith
 import org.objectify.exceptions.ConfigurationException
 import org.objectify.resolvers.matching.{MatchingResolvers, MatchingResolver}
 import org.objectify.resolvers.{ClassResolver, Resolver}
@@ -83,8 +82,7 @@ private[executor] object Injector {
 
     val (resolverName, paramName) = paramAnnotation match {
       case Some(annotation: Named) => (s"${annotation.value()}Resolver", Some(annotation.value()))
-      case Some(annotation: ResolveWith) => (annotation.value(), None)
-      case None => (specifyName(paramType, genericTypesOption), None)
+      case _ => (specifyName(paramType, genericTypesOption), None)
     }
 
     val resolverOption = ClassResolver.resolveResolverClass(resolverName, paramType, returnType)
@@ -108,6 +106,7 @@ private[executor] object Injector {
           case None => None
         }
       }
+      case _ => throw ConfigurationException("Unable to determine a resolver for this particular value.")
     }
 
     logger.debug(s"$prefix  Yielding: $resolvedValue")

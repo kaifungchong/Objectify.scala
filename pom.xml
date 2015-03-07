@@ -4,7 +4,7 @@
   <groupId>org.objectify</groupId>
   <artifactId>objectify-scala</artifactId>
   <packaging>jar</packaging>
-  <version>0.4.0</version>
+  <version>0.4.1</version>
   <name>Objectify[dot]scala</name>
   <url>https://github.com/bitlove/objectify</url>
 
@@ -168,6 +168,10 @@
             <arg>-deprecation</arg>
           </args>
           <charset>UTF-8</charset>
+          <javacArgs>
+            <javacArg>-source 1.7</javacArg>
+            <javacArg>-target 1.7</javacArg>
+          </javacArgs>
         </configuration>
       </plugin>
 
