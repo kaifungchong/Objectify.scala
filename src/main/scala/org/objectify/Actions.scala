@@ -303,7 +303,7 @@ case class Actions() extends Iterable[Action] {
             val parameterType = responder.getMethods.find(method => {
               method.getName.startsWith("apply") && method.getParameterTypes.head != classOf[Object]
             })
-            throw new ConfigurationException(s"Service [$service] and Responder [$responder] are not compatible. Service return type [$returnType] does not match Responder apply method parameter [${parameterType.getOrElse("Undefined")}].")
+            throw new ConfigurationException(s"Service [${service.getSimpleName}] and Responder [${responder.getSimpleName}] are not compatible. Service return type [${returnType.getSimpleName}] does not match Responder apply method parameter [${parameterType.getOrElse("Undefined")}].")
         }
       }
     }

@@ -26,7 +26,7 @@ class IdsMatchingResolverTest extends WordSpec with BeforeAndAfterEach with Mock
       when(mockObjectifyRequest.getQueryParameters).thenReturn(Map("ids" -> queryIds.map(_.toString)))
 
       // exercise
-      val resolvedValue = IdsMatchingResolver("Id")(mockObjectifyRequest)
+      val resolvedValue = IdsMatchingResolver("Ids")(mockObjectifyRequest)
 
       // assert
       resolvedValue should equal(queryIds)
@@ -52,7 +52,7 @@ class IdsMatchingResolverTest extends WordSpec with BeforeAndAfterEach with Mock
       when(mockObjectifyRequest.getBody).thenReturn( s"""{"ids": [${bodyIds.map(_.toString).mkString(",")}], "foo": "bar"}""")
 
       // exercise
-      val resolvedValue = IdsMatchingResolver("Id")(mockObjectifyRequest)
+      val resolvedValue = IdsMatchingResolver("Ids")(mockObjectifyRequest)
 
       // assert
       resolvedValue should equal(bodyIds)
@@ -81,7 +81,7 @@ class IdsMatchingResolverTest extends WordSpec with BeforeAndAfterEach with Mock
       when(mockObjectifyRequest.getBody).thenReturn( s"""{"noIdYo": $bodyId, "foo": "bar"}""")
 
       // exercise
-      an[BadRequestException] should be thrownBy IdsMatchingResolver("Id")(mockObjectifyRequest)
+      an[BadRequestException] should be thrownBy IdsMatchingResolver("Ids")(mockObjectifyRequest)
     }
 
   }

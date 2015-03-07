@@ -111,7 +111,6 @@ private[executor] object Injector {
     }
 
     logger.debug(s"$prefix  Yielding: $resolvedValue")
-    println(resolvedValue)
     resolvedValue.getOrElse(throw ConfigurationException("Unable to resolve value"))
   }
 

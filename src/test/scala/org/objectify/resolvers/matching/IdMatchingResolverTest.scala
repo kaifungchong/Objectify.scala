@@ -25,6 +25,7 @@ class IdMatchingResolverTest extends WordSpec with BeforeAndAfterEach with Mocki
       // setup
       val pathId = anonymousId
       when(mockObjectifyRequest.getPathParameters).thenReturn(Map("id" -> pathId.toString))
+      when(mockObjectifyRequest.getQueryParameters).thenReturn(Map[String, List[String]]())
 
       // exercise
       val resolvedValue = IdMatchingResolver("Id")(mockObjectifyRequest)
@@ -38,6 +39,7 @@ class IdMatchingResolverTest extends WordSpec with BeforeAndAfterEach with Mocki
       val pathId = anonymousId
       val pathName = anonymousClassName
       when(mockObjectifyRequest.getPathParameters).thenReturn(Map(Inflector.uncapitalize(pathName) -> pathId.toString))
+      when(mockObjectifyRequest.getQueryParameters).thenReturn(Map[String, List[String]]())
 
       // exercise
       val resolvedValue = IdMatchingResolver(pathName)(mockObjectifyRequest)

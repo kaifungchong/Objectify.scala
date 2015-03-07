@@ -2,6 +2,7 @@ package org.objectify.resolvers.matching
 
 import mojolly.inflector.Inflector
 import org.objectify.adapters.ObjectifyRequestAdapter
+import org.objectify.exceptions.BadRequestException
 import org.objectify.resolvers.Resolver
 
 /**
@@ -17,16 +18,26 @@ import org.objectify.resolvers.Resolver
  *
  */
 case class IdsMatchingResolver(named: String) extends MatchingResolver[List[Int]] {
-  override def apply(param: ObjectifyRequestAdapter): List[Int] = {
 
+  val idsOptionResolver = IdsOptionMatchingResolver(named)
+
+  override def apply(param: ObjectifyRequestAdapter): List[Int] = {
+    idsOptionResolver(param).getOrElse(throw BadRequestException(s"Expected to be able to extract $named from the queryParam, or request body."))
+  }
+}
+
+case class IdsOptionMatchingResolver(named: String) extends MatchingResolver[Option[List[Int]]] {
+  override def apply(param: ObjectifyRequestAdapter): Option[List[Int]] = {
     // Id => id, CourseId => courseId
     val camelizedNamed = Inflector.uncapitalize(named)
     val idsList = param.getQueryParameters.get(camelizedNamed) match {
       case Some(list) => list
       case None => {
 
-        val IdJson = s""".*"$camelizedNamed"\s*:\s*\[(\s*\d+\s*,)*\].*""".r
-        val IdXml = s"""<$camelizedNamed>(\d+)</$camelizedNamed>""".r
+        println(param.getBody)
+
+        val IdJson = s""".*"$camelizedNamed"\\s*:\\s*\\[([^\\]]*)].*""".r
+        val IdXml = s""".*<$camelizedNamed>(\\d+)</$camelizedNamed>.*""".r
 
         val stringList = param.getBody match {
           case IdJson(ids) => ids
@@ -39,6 +50,11 @@ case class IdsMatchingResolver(named: String) extends MatchingResolver[List[Int]
       }
     }
 
-    idsList.map(_.toInt)
+    try {
+      Option(idsList.map(_.toInt))
+    }
+    catch {
+      case nfe: NumberFormatException => throw BadRequestException(s"$named was not a list of integers as expected")
+    }
   }
 }
