@@ -33,6 +33,8 @@ case class IdOptionMatchingResolver(named: String) extends MatchingResolver[Opti
     // Id => id, CourseId => courseId
     val camelizedNamed = Inflector.uncapitalize(named)
 
+    println(camelizedNamed)
+
     val pathId = param.getPathParameters.get(camelizedNamed)
     val queryParam = param.getQueryParameters.get(camelizedNamed)
 

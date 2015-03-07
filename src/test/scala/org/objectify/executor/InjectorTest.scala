@@ -95,6 +95,7 @@ class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar wi
     "resolve named match params" in {
       val idResolverParamMock = mock[ObjectifyRequestAdapter]
       when(idResolverParamMock.getPathParameters).thenReturn(Map("id" -> "1"))
+      when(idResolverParamMock.getQueryParameters).thenReturn(Map[String, List[String]]())
       val idResolverActual = new IdMatchingResolver("Id").apply(idResolverParamMock)
 
       val resolvedParam = Injector.getInjectedResolverParams(manifest[TestPolicyWithGenericId].runtimeClass.getConstructors.head, idResolverParamMock)
@@ -105,6 +106,7 @@ class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar wi
 
       val idResolverParamMock = mock[ObjectifyRequestAdapter]
       when(idResolverParamMock.getPathParameters).thenReturn(Map("courseId" -> "1"))
+      when(idResolverParamMock.getQueryParameters).thenReturn(Map[String, List[String]]())
       val idResolverActual = new IdMatchingResolver("courseId").apply(idResolverParamMock)
 
       val resolvedParam = Injector.getInjectedResolverParams(manifest[TestPolicyWithGenericCourseId].runtimeClass.getConstructors.head, idResolverParamMock)

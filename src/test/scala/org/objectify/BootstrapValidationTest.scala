@@ -75,9 +75,8 @@ class BootstrapValidationTest
         responder = -:[NonStringResponder]
         )
       val thrown = the[ConfigurationException] thrownBy scalatrafied.bootstrap()
-      val message = "Service [class org.objectify.services.PicturesIndexService] and " +
-        "Responder [class org.objectify.NonStringResponder] are not compatible. Service return " +
-        "type [class java.lang.String] does not match Responder apply method parameter [public java.lang.String org.objectify.NonStringResponder.apply(int)]."
+      val message = "Service [PicturesIndexService] and Responder [NonStringResponder] are not compatible. Service return " +
+        "type [String] does not match Responder apply method parameter [Int]."
 
       thrown.getMessage should equal(message)
     }

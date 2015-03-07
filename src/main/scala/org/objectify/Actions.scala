@@ -9,6 +9,7 @@
 
 package org.objectify
 
+import mojolly.inflector.Inflector
 import mojolly.inflector.InflectorImports._
 import org.objectify.exceptions.ConfigurationException
 import org.objectify.policies.Policy
@@ -300,10 +301,14 @@ case class Actions() extends Iterable[Action] {
         catch {
           case e: NoSuchMethodException =>
             e.printStackTrace()
-            val parameterType = responder.getMethods.find(method => {
+            val paramType = responder.getMethods.find(method => {
               method.getName.startsWith("apply") && method.getParameterTypes.head != classOf[Object]
-            })
-            throw new ConfigurationException(s"Service [${service.getSimpleName}] and Responder [${responder.getSimpleName}] are not compatible. Service return type [${returnType.getSimpleName}] does not match Responder apply method parameter [${parameterType.getOrElse("Undefined")}].")
+            }) match {
+              case Some(method) => Inflector.titleize(method.getParameterTypes.headOption.map(_.getSimpleName).getOrElse("Undefined"))
+              case None => "Undefined"
+            }
+
+            throw new ConfigurationException(s"Service [${service.getSimpleName}] and Responder [${responder.getSimpleName}] are not compatible. Service return type [${returnType.getSimpleName}] does not match Responder apply method parameter [$paramType].")
         }
       }
     }
