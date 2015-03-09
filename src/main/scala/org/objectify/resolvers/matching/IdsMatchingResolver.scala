@@ -15,7 +15,7 @@ import org.objectify.resolvers.Resolver
  *
  * 1. Payload Param {"ids": [:id1, :id2, :id3]} @Named("Ids") id:List[Int]  {"courseIds": :courseIds} @Named("CourseIds") id:List[Int]
  * 2. Query param ie /courses?ids=:id1,:id2,:id3 @Named("Ids") id:List[Int]  /concepts?courseIds=:courseId1,:courseId2,:courseId3 @Named("CourseIds") id:List[Int]
- *
+ od
  */
 case class IdsMatchingResolver(named: String) extends MatchingResolver[List[Int]] {
 
@@ -29,29 +29,24 @@ case class IdsMatchingResolver(named: String) extends MatchingResolver[List[Int]
 case class IdsOptionMatchingResolver(named: String) extends MatchingResolver[Option[List[Int]]] {
   override def apply(param: ObjectifyRequestAdapter): Option[List[Int]] = {
     // Id => id, CourseId => courseId
-    val camelizedNamed = Inflector.uncapitalize(named)
-    val idsList = param.getQueryParameters.get(camelizedNamed) match {
-      case Some(list) => list
+    val camelizedNamed = Inflector.uncapitalize(named.replace("Option", ""))
+    val idsList: Option[List[String]] = param.getQueryParameters.get(camelizedNamed) match {
+      case Some(list) => Some(list)
       case None => {
-
-        println(param.getBody)
 
         val IdJson = s""".*"$camelizedNamed"\\s*:\\s*\\[([^\\]]*)].*""".r
         val IdXml = s""".*<$camelizedNamed>(\\d+)</$camelizedNamed>.*""".r
 
-        val stringList = param.getBody match {
-          case IdJson(ids) => ids
-          case IdXml(ids) => ids
-          // text
-          case ids: String => ids
+        param.getBody match {
+          case IdJson(ids) => Some(ids.split(",").toList)
+          case IdXml(ids) => Some(ids.split(",").toList)
+          case _ => None
         }
-
-        stringList.split(',').toList
       }
     }
 
     try {
-      Option(idsList.map(_.toInt))
+      idsList.map(_.map(_.toInt))
     }
     catch {
       case nfe: NumberFormatException => throw BadRequestException(s"$named was not a list of integers as expected")

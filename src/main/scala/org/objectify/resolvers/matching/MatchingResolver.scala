@@ -17,10 +17,10 @@ object MatchingResolvers {
 
   private var resolverClasses: Map[Regex, Any] = Map.empty
 
-  resolver( """^(\w*)Id$""".r, classOf[IdMatchingResolver])
-  resolver( """^(\w*)IdOption$""".r, classOf[IdOptionMatchingResolver])
-  resolver( """^(\w*)Ids$""".r, classOf[IdsMatchingResolver])
-  resolver( """^(\w*)IdsOption$""".r, classOf[IdsMatchingResolver])
+  resolver( """\w*IdOption""".r, classOf[IdOptionMatchingResolver])
+  resolver( """\w*Id""".r, classOf[IdMatchingResolver])
+  resolver( """\w*Ids""".r, classOf[IdsMatchingResolver])
+  resolver( """\w*IdsOption""".r, classOf[IdsOptionMatchingResolver])
 
   def resolverForName[P, T <: MatchingResolver[P]](name: String): Option[Class[T]] = {
     val resolverKlass = resolverClasses.find({

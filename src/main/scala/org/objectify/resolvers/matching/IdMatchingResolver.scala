@@ -28,12 +28,12 @@ case class IdMatchingResolver(named: String) extends MatchingResolver[Int] {
 }
 
 case class IdOptionMatchingResolver(named: String) extends MatchingResolver[Option[Int]] {
+
+
   override def apply(param: ObjectifyRequestAdapter): Option[Int] = {
 
     // Id => id, CourseId => courseId
-    val camelizedNamed = Inflector.uncapitalize(named)
-
-    println(camelizedNamed)
+    val camelizedNamed = Inflector.uncapitalize(named.replace("Option", ""))
 
     val pathId = param.getPathParameters.get(camelizedNamed)
     val queryParam = param.getQueryParameters.get(camelizedNamed)
