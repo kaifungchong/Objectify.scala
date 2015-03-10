@@ -9,89 +9,129 @@
 
 package org.objectify.executor
 
-import org.objectify.policies.Policy
-import org.objectify.services.Service
-import org.objectify.responders.{PolicyResponder, ServiceResponder}
+import com.twitter.logging.Logger
+import org.objectify.ContentType.ContentType
+import org.objectify.HttpStatus.HttpStatus
 import org.objectify.adapters.ObjectifyRequestAdapter
-import org.objectify.exceptions.{ObjectifyExceptionWithCause, ObjectifyException}
+import org.objectify.exceptions.{ObjectifyException, ObjectifyExceptionWithCause}
+import org.objectify.policies.Policy
+import org.objectify.responders.{PolicyResponder, ResponderResult, ServiceResponder}
+import org.objectify.services.Service
 import org.objectify.{Action, Objectify}
+
 import scala.reflect.ClassTag
 
 /**
-  * This class is responsible for executing the pipeline for the lifecycle of a request.
-  */
+ * This class is responsible for executing the pipeline for the lifecycle of a request.
+ */
 class ObjectifyPipeline(objectify: Objectify) {
 
-    def handleRequest(action: Action, req: ObjectifyRequestAdapter): ObjectifyResponse[_] = {
-        // determine which policies to execute -- globals + action defaults or globals + action overrides
-        val policiesToExecute = getPolicies(action)
+  private val logger = Logger(classOf[ObjectifyPipeline])
 
-        // execute policies
-        val policyResponders = {
-            for {(policy, responder) <- policiesToExecute
-                 if !instantiate[Policy](policy, req).isAllowed} yield (policy, responder)
-        }
+  def handleRequest(action: Action, req: ObjectifyRequestAdapter): ObjectifyResponse[_] = {
+    // determine which policies to execute -- globals + action defaults or globals + action overrides
+    val policiesToExecute = getPolicies(action)
 
-        // if policies failed respond with first failure
-        if (policyResponders.nonEmpty) {
-            // instantiate responder
-            val (policyClass, responderClass) = policyResponders.head
-            val responder = instantiate[PolicyResponder[_]](responderClass, req)
-            responder.policy = Some(policyClass)
-
-            // generate response
-            generateResponse(() => (responder.apply(), responder.status,
-                responder.contentType.getOrElse(action.contentType.toString)
-            ))
-        }
-        // else execute the service call
-        else {
-            val service = instantiate[Service[_]](action.resolveServiceClass, req)
-            val responder = instantiate[ServiceResponder[_, _]](action.resolveResponderClass, req)
-
-            generateResponse(() => {
-                // get the service result
-                val serviceResult = service()
-
-                // execute post service (pre-responder hook)
-                objectify.postServiceHook(serviceResult, responder)
-
-                // execute responder and extract status
-                (responder.applyAny(serviceResult), responder.status,
-                    responder.contentType.getOrElse(action.contentType.toString)
-                )
-            })
-        }
+    // execute
+    logger.debug("Executing Policies")
+    val policyResponders = {
+      for {(policy, responder) <- policiesToExecute
+           if !instantiate[Policy](policy, req).isAllowed
+      } yield (policy, responder)
     }
 
-    private def getPolicies(action: Action) = {
-        if (!action.ignoreGlobalPolicies)
-            objectify.defaults.globalPolicies ++ getLocalPolicies(action)
-        else
-            getLocalPolicies(action)
-    }
 
-    private def getLocalPolicies(action: Action) = {
-        if (action.resolvePolicies.nonEmpty)
-            action.resolvePolicies
-        else
-            objectify.defaults.defaultPolicies
-    }
+    // if policies failed respond with first failure
+    if (policyResponders.nonEmpty) {
+      // instantiate responder
+      val (policyClass, responderClass) = policyResponders.head
+      val responder = instantiate[PolicyResponder[_]](responderClass, req)
+      responder.policy = Some(policyClass)
 
-    private def instantiate[T: ClassTag](klass: Class[_ <: T], req: ObjectifyRequestAdapter): T = {
-        Invoker.invoke(klass, req)
+      // generate response
+      generateResponse(responder.apply(), responder.status, responder.contentType)
     }
+    // else execute the service call
+    else {
 
-    def generateResponse[T: ClassTag](result: () => (T, Option[Int], String)): ObjectifyResponse[T] = {
-        try {
-            val (content, status, contentType) = result()
-            new ObjectifyResponse(contentType, status.getOrElse(200), content)
-        }
-        catch {
-            case e: ObjectifyException => throw e
-            case e: ObjectifyExceptionWithCause => throw e
-            case e: Exception => throw new ObjectifyExceptionWithCause(500, "Unexpected Exception", e)
-        }
+      val serviceClass = action.resolveServiceClass
+
+      //      val typeConstructor = typeOf[serviceClass.type].typeConstructor
+      //
+      //      logger.info("Trying to spew out param names for : " + serviceClass)
+      //
+      //      val m = runtimeMirror(getClass.getClassLoader)
+      //      val cm = m.reflect(serviceClass)
+      //
+      //      typeConstructor.members.filter(!_.isMethod).foreach(param => {
+      //        logger.info(param.name.toString)
+      //      })
+
+      logger.debug("Instantiating Service Class")
+      val service = instantiate[Service[_]](serviceClass, req)
+      logger.debug("Done")
+
+      val responder = instantiate[ServiceResponder[_, _]](action.resolveResponderClass, req)
+
+      logger.debug(s"Executing service $serviceClass")
+      // get the service result
+      val serviceResult = service()
+
+      logger.debug(s"Result $serviceResult")
+
+      // execute post service (pre-responder hook)
+      objectify.postServiceHook(serviceResult, responder)
+
+      // execute responder and extract status
+      val (result, status, contentType) = responder.applyAny(serviceResult) match {
+        case responderResult: ResponderResult => (responderResult.value, responderResult.httpStatus, responder.contentType)
+        case a: Any => (a, responder.status, responder.contentType)
+      }
+
+      generateResponse(result, status, contentType)
     }
+  }
+
+  private def getPolicies(action: Action) = {
+    if (!action.ignoreGlobalPolicies)
+      objectify.defaults.globalPolicies ++ getLocalPolicies(action)
+    else
+      getLocalPolicies(action)
+  }
+
+  private def getLocalPolicies(action: Action) = {
+    if (action.resolvePolicies.nonEmpty)
+      action.resolvePolicies
+    else
+      objectify.defaults.defaultPolicies
+  }
+
+  private def instantiate[T: ClassTag](klass: Class[_ <: T], req: ObjectifyRequestAdapter): T = {
+    logger.debug("Instantiating Class: " + klass.getSimpleName)
+    val result = Invoker.invoke(klass, req)
+    logger.debug("Finished Instantiating Class: " + result)
+
+    result
+  }
+
+  def generateResponse[T: ClassTag](content: T, status: HttpStatus, contentType: ContentType): ObjectifyResponse[T] = {
+    try {
+      new ObjectifyResponse(contentType, status, content)
+    }
+    catch {
+      case e: ObjectifyException => {
+        e.printStackTrace()
+        throw e
+      }
+      case e: ObjectifyExceptionWithCause => {
+        e.printStackTrace()
+        throw e
+      }
+      case e: Throwable => {
+        e.printStackTrace()
+        throw new ObjectifyExceptionWithCause(500, "Unexpected Exception", e)
+      }
+    }
+  }
 }
 

@@ -9,12 +9,13 @@
 
 package org.objectify
 
-import exceptions.ConfigurationException
-import org.objectify.policies.Policy
-import org.objectify.services.Service
+import mojolly.inflector.Inflector
 import mojolly.inflector.InflectorImports._
-import resolvers.ClassResolver
-import responders.{PolicyResponder, ServiceResponder}
+import org.objectify.exceptions.ConfigurationException
+import org.objectify.policies.Policy
+import org.objectify.resolvers.ClassResolver
+import org.objectify.responders.{GenericResponder, PolicyResponder, ServiceResponder}
+import org.objectify.services.Service
 
 object HttpMethod extends Enumeration {
   type HttpMethod = Value
@@ -32,10 +33,67 @@ object ContentType extends Enumeration {
   val PDF = Value("application/pdf")
 }
 
+object HttpStatus extends Enumeration {
+  type HttpStatus = Value
+
+  val NotSet = Value(0);
+  val Continue = Value(100)
+  val SwitchingProtocols = Value(101)
+  val Processing = Value(102)
+
+  val Ok = Value(200)
+  val Created = Value(201)
+  val Accepted = Value(202)
+  val NonAuthoritativeInformation = Value(203)
+  val NoContent = Value(204)
+  val ResetContent = Value(205)
+  val PartialContent = Value(206)
+  val MultiStatus = Value(207)
+
+  val MultipleChoices = Value(300)
+  val MovedPermanently = Value(301)
+  val Found = Value(302)
+  val SeeOther = Value(303)
+  val NotModified = Value(304)
+  val UseProxy = Value(305)
+  val TemporaryRedirect = Value(307)
+
+  val BadRequest = Value(400)
+  val Unauthorized = Value(401)
+  val PaymentRequired = Value(402)
+  val Forbidden = Value(403)
+  val NotFound = Value(404)
+  val MethodNotAllowed = Value(405)
+  val NotAcceptable = Value(406)
+  val ProxyAuthenticationRequired = Value(407)
+  val RequestTimeout = Value(408)
+  val Conflict = Value(409)
+  val Gone = Value(410)
+  val LengthRequired = Value(411)
+  val PreconditionFailed = Value(412)
+  val RequestEntityTooLarge = Value(413)
+  val RequestUriTooLong = Value(414)
+  val UnsupportedMediaType = Value(415)
+  val RequestedRangeNot_Satisfiable = Value(416)
+  val ExpectationFailed = Value(417)
+  val EnhanceYourCalm = Value(420)
+  val UnprocessableEntity = Value(422)
+  val Locked = Value(423)
+  val FailedDependency = Value(424)
+
+  val InternalServerError = Value(500)
+  val NotImplemented = Value(501)
+  val BadGateway = Value(502)
+  val ServiceUnavailable = Value(503)
+  val GatewayTimeout = Value(504)
+  val HttpVersionNotSupported = Value(505)
+  val InsufficientStorage = Value(507)
+}
+
 case class AcceptType(content: Option[ContentType.ContentType])
 
-import HttpMethod._
-import ContentType._
+import org.objectify.ContentType._
+import org.objectify.HttpMethod._
 
 /**
  * An Objectify Action is a mapping of an HTTP Verb + URL pattern to a
@@ -43,7 +101,6 @@ import ContentType._
  */
 case class Action(method: HttpMethod,
                   var name: String,
-                  contentType: ContentType = JSON,
                   var route: Option[String] = None,
                   var policies: Option[Map[Class[_ <: Policy], Class[_ <: PolicyResponder[_]]]] = None,
                   var service: Option[Class[_ <: Service[_]]] = None,
@@ -63,25 +120,18 @@ case class Action(method: HttpMethod,
   }
 
   /**
-   * Resolves the service class by either returning the preset service class
-   * or find the class based on the name of this action
+   * Resolves the responder class by either returning the preset service class
+   * or finding the class based on the name of this action if that fails we get
+   * return the generic one.
    *
-   * eg: pictures index => PicturesIndexService
+   * eg: pictures index => PicturesIndexResponder
    */
-  def resolveServiceClass: Class[_ <: Service[_]] = {
-    service.getOrElse(ClassResolver.resolveServiceClass(getSerivceClassName(name)))
-  }
-
-  // similar with responders
   def resolveResponderClass: Class[_ <: ServiceResponder[_, _]] = {
-    responder.getOrElse(ClassResolver.resolveResponderClass(getResponderClassName(name)))
-  }
-
-  /**
-   * Convention over configuration
-   */
-  private def getSerivceClassName(name: String) = {
-    name + "Service"
+    responder
+      .getOrElse(
+        ClassResolver.resolveResponderClassOption(getResponderClassName(name))
+          .getOrElse(classOf[GenericResponder])
+      )
   }
 
   private def getResponderClassName(name: String) = {
@@ -89,17 +139,24 @@ case class Action(method: HttpMethod,
   }
 
   override def toString = {
-    val stringBuilder = new StringBuilder()
-    stringBuilder.append("Actions(")
-    stringBuilder.append(method)
-    stringBuilder.append(',')
-    stringBuilder.append(name)
-    stringBuilder.append(',')
-    stringBuilder.append(route.getOrElse("NO ROUTE"))
-    stringBuilder.append(',')
-    stringBuilder.append(resolveServiceClass)
-    stringBuilder.append(")")
-    stringBuilder.toString()
+    s"Action($method, ${route.getOrElse("NO ROUTE")}, ${resolveServiceClass.getSimpleName}})"
+  }
+
+  /**
+   * Resolves the service class by either returning the preset service class
+   * or finding the class based on the name of this action
+   *
+   * eg: pictures index => PicturesIndexService
+   */
+  def resolveServiceClass: Class[_ <: Service[_]] = {
+    service.getOrElse(ClassResolver.resolveServiceClass(getSerivceClassName(name)))
+  }
+
+  /**
+   * Convention over configuration
+   */
+  private def getSerivceClassName(name: String) = {
+    name + "Service"
   }
 
   override def equals(other: Any): Boolean = {
@@ -151,10 +208,14 @@ case class Actions() extends Iterable[Action] {
                  policies: Option[Map[Class[_ <: Policy], Class[_ <: PolicyResponder[_]]]] = None,
                  service: Option[Class[_ <: Service[_]]] = None, responder: Option[Class[_ <: ServiceResponder[_, _]]] = None,
                  ignoreGlobalPolicies: Boolean = false) {
-    val action = Action(httpMethod, name, contentType, Some(route), policies, service, responder, ignoreGlobalPolicies)
+    val action = Action(httpMethod, name, Some(route), policies, service, responder, ignoreGlobalPolicies)
 
     resolveRouteAndName(Some(action), "", route)
   }
+
+  def singularResource(name: String) = resource(name, pluralize = false)
+
+  def simpleResource(name: String, actionTuple: (String, String)) = resource(name, pluralize = false) onlyRoute actionTuple
 
   /**
    * Default routing configuration point assumes to create an
@@ -188,9 +249,22 @@ case class Actions() extends Iterable[Action] {
     new Resource(List(index, show, create, update, destroy))
   }
 
-  def singularResource(name: String) = resource(name, pluralize = false)
+  private def resolveRouteAndName(actionOption: Option[Action], namePrefix: String, route: String, resource: Option[String] = None) {
+    actionOption.map(a => {
+      a.name = namePrefix.capitalize + a.name.capitalize
+      a.resource = Some(resource.getOrElse(namePrefix))
+      a.setRouteIfNone(route)
+      action(a)
+    })
+  }
 
-  def simpleResource(name: String, actionTuple: (String, String)) = resource(name, pluralize = false) onlyRoute actionTuple
+  private def action(action: Action) = {
+    var map = actions(action.method)
+    map += (action.route.get -> action)
+    actions += (action.method -> map)
+
+    action
+  }
 
   def simpleResource(name: String, verb: String) = resource(name, pluralize = false) only verb
 
@@ -204,27 +278,65 @@ case class Actions() extends Iterable[Action] {
     }
   }
 
+  override def iterator = {
+    actions.values.flatMap(_.values).iterator
+  }
+
+  def bootstrapValidation() {
+    for {
+      (verb, actionsEntry) <- actions
+      (string, action) <- actionsEntry
+    } {
+      action.resolvePolicies
+      val service = action.resolveServiceClass
+      val responder = action.resolveResponderClass
+
+      // tolerate generic responder
+      if (responder != classOf[GenericResponder]) {
+        // make sure service and resolver are compatible
+        val returnType = service.getMethod("apply").getReturnType
+        try {
+          responder.getMethod("apply", returnType).getParameterTypes.head
+        }
+        catch {
+          case e: NoSuchMethodException =>
+            e.printStackTrace()
+            val paramType = responder.getMethods.find(method => {
+              method.getName.startsWith("apply") && method.getParameterTypes.head != classOf[Object]
+            }) match {
+              case Some(method) => Inflector.titleize(method.getParameterTypes.headOption.map(_.getSimpleName).getOrElse("Undefined"))
+              case None => "Undefined"
+            }
+
+            throw new ConfigurationException(s"Service [${service.getSimpleName}] and Responder [${responder.getSimpleName}] are not compatible. Service return type [${returnType.getSimpleName}] does not match Responder apply method parameter [$paramType].")
+        }
+      }
+    }
+  }
+
+  override def toString() = {
+    val stringBuilder = new StringBuilder()
+    stringBuilder.append("\n")
+    stringBuilder.append("Actions[")
+    actions.foreach {
+      case (verb, innerActions) =>
+        stringBuilder.append("\n\t")
+        stringBuilder.append(verb)
+        innerActions.foreach {
+          case (route, action) =>
+            stringBuilder.append("\n\t\t")
+            stringBuilder.append(action)
+        }
+    }
+    stringBuilder.append("\n")
+    stringBuilder.append("]")
+    stringBuilder.toString()
+  }
+
   /**
    * This class is mainly here to help in creating a pretty syntax with chained calls
    */
   class Resource(private var actions: List[Option[Action]]) {
-
-    case class ResourceAction(resource: Resource, action: Action) {
-      def policy(policy: PolicyTuple) = {
-        resource.policy(policy onlyActions action)
-        this
-      }
-
-      def policies(policies: PolicyTuple*) = {
-        resource.policies(policies.map(_ onlyActions action): _*)
-        this
-      }
-
-      def ignoreGlobalPolicies() = {
-        resource.ignoreGlobalPoliciesOnlyActions(action)
-        this
-      }
-    }
 
     def action(route: String, verb: HttpMethod = Get,
                namePrefix: Option[String] = actions.head.map(_.resource.getOrElse("")),
@@ -253,19 +365,8 @@ case class Actions() extends Iterable[Action] {
       ResourceAction(this, action.get)
     }
 
-    def only(actionStrings: String*): Resource = {
-      val actualActions = string2Actions(actionStrings)
-      val actionsToRemove = actions.filterNot(actualActions.contains(_))
-      removeActions(actionsToRemove.map(_.get))
-      this
-    }
-
     def onlyRoute(actionTuples: (String, String)*): Resource = {
       onlyRouteWithService(actionTuples.map(a => ((a._1, a._2), (None, None))): _*)
-    }
-
-    def onlyRouteWithPrefix(prefix: String, actionTuples: (String, String)*): Resource = {
-      onlyRouteWithService(actionTuples.map(a => ((a._1, prefix + "/" + a._2), (None, None))): _*)
     }
 
     def onlyRouteWithService(actionTuples: ((String, String),
@@ -287,6 +388,24 @@ case class Actions() extends Iterable[Action] {
       this
     }
 
+    def only(actionStrings: String*): Resource = {
+      val actualActions = string2Actions(actionStrings)
+      val actionsToRemove = actions.filterNot(actualActions.contains(_))
+      removeActions(actionsToRemove.map(_.get))
+      this
+    }
+
+    // try to match up name with reverse of resolveRouteAndName
+    private def string2Actions(actionStr: Seq[String]) = {
+      actions.filter(action => {
+        actionStr.count(s => action.get.name.toLowerCase.endsWith(s)) > 0
+      })
+    }
+
+    def onlyRouteWithPrefix(prefix: String, actionTuples: (String, String)*): Resource = {
+      onlyRouteWithService(actionTuples.map(a => ((a._1, prefix + "/" + a._2), (None, None))): _*)
+    }
+
     def except(actionStrings: String*): Resource = {
       val actualActions = string2Actions(actionStrings)
       val actionsToRemove = actions.filter(actualActions.contains(_))
@@ -298,6 +417,30 @@ case class Actions() extends Iterable[Action] {
       val applyActions = getActionsFromPolicyTuple(policy)
       applyPolicies(applyActions, policy.tuple)
       this
+    }
+
+    private def getActionsFromPolicyTuple(tuple: PolicyTuple): List[Option[Action]] = {
+      // either only or except -- not both
+      if (tuple.onlyStr.nonEmpty || tuple.onlyAct.nonEmpty) {
+        string2Actions(tuple.onlyStr) ++ tuple.onlyAct
+      }
+      else if (tuple.exceptStr.nonEmpty || tuple.exceptAct.nonEmpty) {
+        actions.filterNot({
+          (string2Actions(tuple.exceptStr) ++ tuple.exceptAct).contains(_)
+        })
+      }
+      else {
+        actions
+      }
+    }
+
+    // apply a single policy to any number of actions
+    private def applyPolicies(actions: List[Option[Action]], policy: (Class[_ <: Policy], Class[_ <: PolicyResponder[_]])) {
+      actions.flatten.foreach(action => {
+        val actionPols = action.policies
+        val allPolicies = if (actionPols.isDefined) actionPols.get ++ Map(policy) else Map(policy)
+        action.policies = Some(allPolicies)
+      })
     }
 
     def policies(policies: PolicyTuple*): Resource = {
@@ -332,99 +475,23 @@ case class Actions() extends Iterable[Action] {
       this
     }
 
-    private def getActionsFromPolicyTuple(tuple: PolicyTuple): List[Option[Action]] = {
-      // either only or except -- not both
-      if (tuple.onlyStr.nonEmpty || tuple.onlyAct.nonEmpty) {
-        string2Actions(tuple.onlyStr) ++ tuple.onlyAct
+    case class ResourceAction(resource: Resource, action: Action) {
+      def policy(policy: PolicyTuple) = {
+        resource.policy(policy onlyActions action)
+        this
       }
-      else if (tuple.exceptStr.nonEmpty || tuple.exceptAct.nonEmpty) {
-        actions.filterNot({
-          (string2Actions(tuple.exceptStr) ++ tuple.exceptAct).contains(_)
-        })
+
+      def policies(policies: PolicyTuple*) = {
+        resource.policies(policies.map(_ onlyActions action): _*)
+        this
       }
-      else {
-        actions
-      }
-    }
 
-    // try to match up name with reverse of resolveRouteAndName
-    private def string2Actions(actionStr: Seq[String]) = {
-      actions.filter(action => {
-        actionStr.count(s => action.get.name.toLowerCase.endsWith(s)) > 0
-      })
-    }
-
-    // apply a single policy to any number of actions
-    private def applyPolicies(actions: List[Option[Action]], policy: (Class[_ <: Policy], Class[_ <: PolicyResponder[_]])) {
-      actions.flatten.foreach(action => {
-        val actionPols = action.policies
-        val allPolicies = if (actionPols.isDefined) actionPols.get ++ Map(policy) else Map(policy)
-        action.policies = Some(allPolicies)
-      })
-    }
-  }
-
-  private def resolveRouteAndName(actionOption: Option[Action], namePrefix: String, route: String, resource: Option[String] = None) {
-    actionOption.map(a => {
-      a.name = namePrefix.capitalize + a.name.capitalize
-      a.resource = Some(resource.getOrElse(namePrefix))
-      a.setRouteIfNone(route)
-      action(a)
-    })
-  }
-
-  private def action(action: Action) = {
-    var map = actions(action.method)
-    map += (action.route.get -> action)
-    actions += (action.method -> map)
-
-    action
-  }
-
-  override def iterator = {
-    actions.values.flatMap(_.values).iterator
-  }
-
-  def bootstrapValidation() {
-    for {
-      (verb, actionsEntry) <- actions
-      (string, action) <- actionsEntry
-    } {
-      action.resolvePolicies
-      val service = action.resolveServiceClass
-      val responder = action.resolveResponderClass
-
-      // make sure service and resolver are compatible
-      val returnType = service.getMethod("apply").getReturnType
-      try {
-        responder.getMethod("apply", returnType).getParameterTypes.head
-      }
-      catch {
-        case e: NoSuchMethodException =>
-          val parameterType = responder.getMethods.find(method => {
-            method.getName.startsWith("apply") && method.getParameterTypes.head != classOf[Object]
-          })
-          throw new ConfigurationException(s"Service [$service] and Responder [$responder] are not compatible. Service return type [$returnType] does not match Responder apply method parameter [${parameterType.getOrElse("Undefined")}].")
+      def ignoreGlobalPolicies() = {
+        resource.ignoreGlobalPoliciesOnlyActions(action)
+        this
       }
     }
+
   }
 
-  override def toString() = {
-    val stringBuilder = new StringBuilder()
-    stringBuilder.append("\n")
-    stringBuilder.append("Actions[")
-    actions.foreach {
-      case (verb, innerActions) =>
-        stringBuilder.append("\n\t")
-        stringBuilder.append(verb)
-        innerActions.foreach {
-          case (route, action) =>
-            stringBuilder.append("\n\t\t")
-            stringBuilder.append(action)
-        }
-    }
-    stringBuilder.append("\n")
-    stringBuilder.append("]")
-    stringBuilder.toString()
-  }
 }

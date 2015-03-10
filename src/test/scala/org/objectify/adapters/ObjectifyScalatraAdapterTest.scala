@@ -9,18 +9,18 @@
 
 package org.objectify.adapters
 
-import org.scalatest.mock.MockitoSugar
-import org.objectify.ContentType._
-import org.scalatra.test.scalatest.ScalatraSuite
-import org.scalatest.{Matchers, BeforeAndAfterEach, WordSpec}
-import org.scalatra.ScalatraFilter
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
+import org.objectify.ContentType._
 import org.objectify.HttpMethod._
-import org.objectify.responders.{PicturesIndexResponder, BadPolicyResponder}
 import org.objectify.policies.{AuthenticationPolicy, GoodPolicy}
-import org.objectify.{ContentType, Action, ObjectifySugar}
-import org.objectify.services.{ThrowsUnexpected, Throws403, ThrowsConfig, ThrowsBadRequest}
+import org.objectify.responders.{BadPolicyResponder, PicturesIndexResponder}
+import org.objectify.services.{Throws403, ThrowsBadRequest, ThrowsConfig, ThrowsUnexpected}
+import org.objectify.{Action, ObjectifySugar}
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.mock.MockitoSugar
+import org.scalatest.{BeforeAndAfterEach, Matchers, WordSpec}
+import org.scalatra.ScalatraFilter
+import org.scalatra.test.scalatest.ScalatraSuite
 
 
 /**
@@ -92,13 +92,6 @@ class ObjectifyScalatraAdapterTest
       "return JSON by default" in {
         get("/pictures") {
           header("Content-Type") should include("application/json")
-        }
-      }
-      "return overridden type" in {
-        scalatrafied.actions resource("pictures", index = Some(Action(Get, "index", ContentType.XML)))
-        scalatrafied.bootstrap()
-        get("/pictures") {
-          header("Content-Type") should include("application/xml")
         }
       }
     }

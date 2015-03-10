@@ -9,10 +9,10 @@
 
 package org.objectify.adapters
 
+import org.apache.commons.fileupload.FileItem
 import org.objectify.HttpMethod
 import org.objectify.exceptions.BadRequestException
-import org.scalatra.servlet.{RichResponse, RichRequest}
-import org.apache.commons.fileupload.FileItem
+import org.scalatra.servlet.{RichRequest, RichResponse}
 
 /**
  * Scalatrafied Request!
@@ -24,6 +24,8 @@ class ScalatraRequestAdapter(request: RichRequest,
   extends ObjectifyRequestAdapter {
 
   def getPath = request.pathInfo
+
+  def getUri = request.uri.toString
 
   def getQueryParameters = request.multiParameters.map(entry => (entry._1, entry._2.toList))
 
@@ -44,4 +46,8 @@ class ScalatraRequestAdapter(request: RichRequest,
   def getRequest = request.r
 
   def getResponse = response.res
+
+  def getHeader(string: String): Option[String] = {
+    request.header(string)
+  }
 }

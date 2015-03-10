@@ -9,9 +9,10 @@
 
 package org.objectify.adapters
 
+import com.twitter.logging.Logger
 import org.objectify.HttpMethod.{Delete, Get, Options, Patch, Post, Put}
 import org.objectify.Objectify
-import org.objectify.exceptions.{BadRequestException, ObjectifyException, ObjectifyExceptionWithCause}
+import org.objectify.exceptions.{ConfigurationException, BadRequestException, ObjectifyException, ObjectifyExceptionWithCause}
 import org.objectify.resolvers.ClassResolver
 import org.scalatra.fileupload.FileUploadSupport
 import org.scalatra.servlet.{RichRequest, RichResponse, ServletBase}
@@ -62,7 +63,8 @@ trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploa
         case Patch => patch(route) _
       }
 
-      scalatraFunction("/" + action.route.getOrElse(throw new BadRequestException("No Route Found"))) {
+      val route = "/" + action.route.getOrElse(throw ConfigurationException("No Route Found"))
+      scalatraFunction(route) {
         // wrap HttpServletRequest in adapter and get ObjectifyResponse
         val objectifyResponse = execute(action,
           new ScalatraRequestAdapter(RichRequest(request), RichResponse(response), params.toMap, Some(fileParams)))
@@ -76,10 +78,12 @@ trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploa
   error {
     case e: ObjectifyException => {
       status = e.status
+      e.printStackTrace()
       e.getMessage
     }
     case e: ObjectifyExceptionWithCause => {
       status = e.status
+      e.printStackTrace()
       e.getMessage
     }
   }

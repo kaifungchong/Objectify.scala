@@ -9,11 +9,14 @@
 
 package org.objectify.executor
 
+import org.objectify.ContentType.ContentType
+import org.objectify.HttpStatus.HttpStatus
+
 import scala.reflect.ClassTag
 
 /**
-  * This is a wrapper for a response
-  */
-class ObjectifyResponse[T: ClassTag](val contentType: String, val status: Int, val entity: T)
+ * This is a wrapper for a response
+ */
+class ObjectifyResponse[T: ClassTag](val contentType: ContentType, val status: HttpStatus, val entity: T)
 
 

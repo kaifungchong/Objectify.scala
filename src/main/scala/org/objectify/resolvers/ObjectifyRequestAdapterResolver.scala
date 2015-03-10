@@ -15,5 +15,5 @@ import org.objectify.adapters.ObjectifyRequestAdapter
  * Resolver for Objectify request adapter
  */
 class ObjectifyRequestAdapterResolver extends Resolver[ObjectifyRequestAdapter, ObjectifyRequestAdapter] {
-    def apply(req: ObjectifyRequestAdapter) = req
+  def apply(req: ObjectifyRequestAdapter) = req
 }

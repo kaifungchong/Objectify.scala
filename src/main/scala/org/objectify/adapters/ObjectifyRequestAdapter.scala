@@ -9,29 +9,46 @@
 
 package org.objectify.adapters
 
-import org.objectify.HttpMethod
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
 import org.apache.commons.fileupload.FileItem
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
+import org.objectify.HttpMethod
 
 /**
-  * Adapter for requests
-  */
+ * Adapter for requests
+ */
 trait ObjectifyRequestAdapter {
-    def getPath: String
 
-    def getQueryParameters: Map[String, List[String]]
+  //  private var _cached: Map[String, Any] = Map.empty
+  //
+  //  def cached: Map[String, Any] = _cached
+  //
+  //  def cached[T](key: String, valueOpt: Option[T]): Option[T] =
+  //    valueOpt match {
+  //      case Some(value) => _cached = _cached + (key -> value)
+  //      case None => _cached(key)
+  //    }
 
-    def getPathParameters: Map[String, String]
 
-    def getHttpMethod: HttpMethod.Value
+  def getPath: String
 
-    def getBody: String
+  def getUri: String
 
-    def getFileParams: Map[String, FileItem]
+  def getQueryParameters: Map[String, List[String]]
 
-    def getCookies: Map[String, String]
+  def getPathParameters: Map[String, String]
 
-    def getResponse: HttpServletResponse
+  def getHttpMethod: HttpMethod.Value
 
-    def getRequest: HttpServletRequest
+  def getBody: String
+
+  def getFileParams: Map[String, FileItem]
+
+  def getCookies: Map[String, String]
+
+  def getResponse: HttpServletResponse
+
+  def getRequest: HttpServletRequest
+
+  def getHeader(string: String): Option[String]
 }

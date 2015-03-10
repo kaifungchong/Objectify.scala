@@ -10,23 +10,19 @@
 package org.objectify.resolvers
 
 import org.objectify.adapters.ObjectifyRequestAdapter
-import org.objectify.{ContentType, AcceptType}
+import org.objectify.{AcceptType, ContentType}
 
 /**
  * Resolver for accept type
  */
 class AcceptTypeResolver extends Resolver[AcceptType, ObjectifyRequestAdapter] {
-    def apply(req: ObjectifyRequestAdapter) = {
-        val acceptType = try {
-            val acceptString = req.getRequest.getHeader("Accept")
-            if (acceptString != null) Some(ContentType.withName(acceptString)) else None
-        }
-        catch {
-            case e: NoSuchElementException => None
-        }
-
-        AcceptType(acceptType)
-    }
+  def apply(req: ObjectifyRequestAdapter) = {
+    AcceptType(req.getHeader("Accept").map(acceptHeader => try {
+      ContentType.withName(acceptHeader)
+    } catch {
+      case e: NoSuchElementException => ContentType.JSON
+    }))
+  }
 }
 
 

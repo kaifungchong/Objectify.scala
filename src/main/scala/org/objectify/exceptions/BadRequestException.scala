@@ -10,9 +10,9 @@
 package org.objectify.exceptions
 
 /**
-  * This exception geared specifically for bad requests data.
-  *
-  * This exception is mapped to a 400 status code.
-  */
-class BadRequestException(msg: String) extends ObjectifyException(400, msg) {
+ * This exception geared specifically for bad requests data.
+ *
+ * This exception is mapped to a 400 status code.
+ */
+case class BadRequestException(msg: String) extends ObjectifyException(400, msg) {
 }

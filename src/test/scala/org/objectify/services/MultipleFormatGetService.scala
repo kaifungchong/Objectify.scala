@@ -14,5 +14,5 @@ package org.objectify.services
  * Sample service
  */
 class MultipleFormatGetService extends Service[String] {
-    def apply() = "some value"
+  def apply() = "some value"
 }

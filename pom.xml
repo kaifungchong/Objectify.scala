@@ -1,10 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.objectify</groupId>
   <artifactId>objectify-scala</artifactId>
   <packaging>jar</packaging>
-  <version>0.2.6</version>
+  <version>0.4.4</version>
   <name>Objectify[dot]scala</name>
   <url>https://github.com/bitlove/objectify</url>
 
@@ -47,6 +47,11 @@
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
       <version>${scala.minor.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.codahale</groupId>
+      <artifactId>jerkson_${scala.version}</artifactId>
+      <version>0.6.4-Learndot</version>
     </dependency>
     <dependency>
       <groupId>org.reflections</groupId>
@@ -93,7 +98,6 @@
       <artifactId>util-logging_${scala.version}</artifactId>
       <version>${twitter.version}</version>
     </dependency>
-
     <dependency>
       <groupId>io.dropwizard.metrics</groupId>
       <artifactId>metrics-core</artifactId>
@@ -164,6 +168,10 @@
             <arg>-deprecation</arg>
           </args>
           <charset>UTF-8</charset>
+          <javacArgs>
+            <javacArg>-source 1.7</javacArg>
+            <javacArg>-target 1.7</javacArg>
+          </javacArgs>
         </configuration>
       </plugin>
 

@@ -9,17 +9,17 @@
 
 package org.objectify
 
-import adapters.ObjectifyScalatraAdapter
-import exceptions.ConfigurationException
-import org.scalatest.{Matchers, BeforeAndAfterEach, WordSpec}
+import org.junit.runner.RunWith
+import org.objectify.HttpMethod._
+import org.objectify.adapters.ObjectifyScalatraAdapter
+import org.objectify.exceptions.ConfigurationException
+import org.objectify.responders.ServiceResponder
+import org.objectify.services.PicturesIndexService
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.mock.MockitoSugar
+import org.scalatest.{BeforeAndAfterEach, Matchers, WordSpec}
 import org.scalatra.ScalatraFilter
 import org.scalatra.test.scalatest.ScalatraSuite
-import responders.ServiceResponder
-import services.PicturesIndexService
-import org.scalatest.mock.MockitoSugar
-import HttpMethod._
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 
 /**
  * Making sure bootstrap validation works correctly
@@ -57,15 +57,17 @@ class BootstrapValidationTest
       val thrown = the[ConfigurationException] thrownBy scalatrafied.bootstrap()
       thrown.getMessage should equal("No class matching the name: AsdfService")
     }
-    "Fail when responders don't exist" in {
+
+
+    "Pass when responders don't exist" in {
       scalatrafied.actions actionBase(Get, "asdf", "asdf",
         policies = None,
         service = -:[PicturesIndexService],
         responder = None
         )
-      val thrown = the[ConfigurationException] thrownBy scalatrafied.bootstrap()
-      thrown.getMessage should equal("No class matching the name: AsdfResponder")
     }
+
+
     "Fail when responders don't match up with services" in {
       scalatrafied.actions actionBase(Get, "asdf", "asdf",
         policies = None,
@@ -73,9 +75,8 @@ class BootstrapValidationTest
         responder = -:[NonStringResponder]
         )
       val thrown = the[ConfigurationException] thrownBy scalatrafied.bootstrap()
-      val message = "Service [class org.objectify.services.PicturesIndexService] and " +
-        "Responder [class org.objectify.NonStringResponder] are not compatible. Service return " +
-        "type [class java.lang.String] does not match Responder apply method parameter [public java.lang.String org.objectify.NonStringResponder.apply(int)]."
+      val message = "Service [PicturesIndexService] and Responder [NonStringResponder] are not compatible. Service return " +
+        "type [String] does not match Responder apply method parameter [Int]."
 
       thrown.getMessage should equal(message)
     }

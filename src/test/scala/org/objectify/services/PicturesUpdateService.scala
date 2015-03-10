@@ -10,8 +10,8 @@
 package org.objectify.services
 
 /**
-  * Sample service
-  */
+ * Sample service
+ */
 class PicturesUpdateService extends Service[String] {
-    def apply() = "update"
+  def apply() = "update"
 }

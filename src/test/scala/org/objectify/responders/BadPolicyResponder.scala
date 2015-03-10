@@ -11,10 +11,10 @@ package org.objectify.responders
 
 
 /**
-  * Sample responder
-  */
+ * Sample responder
+ */
 class BadPolicyResponder extends PolicyResponder[String] {
-    override def apply(): String = {
-        "Sweet"
-    }
+  override def apply(): String = {
+    "Sweet"
+  }
 }
