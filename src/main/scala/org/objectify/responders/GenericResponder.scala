@@ -2,6 +2,7 @@ package org.objectify.responders
 
 import org.objectify.ContentType._
 import org.objectify.responders.serializers.SerializerRegistry
+import org.objectify.services.RedirectResult
 import org.objectify.{AcceptType, ContentType, HttpStatus}
 
 /**
@@ -12,10 +13,16 @@ import org.objectify.{AcceptType, ContentType, HttpStatus}
  */
 class GenericResponder(acceptType: AcceptType) extends ServiceResponder[ResponderResult, Any] {
   override def apply(serviceResult: Any): ResponderResult = {
-    acceptType.content.getOrElse(JSON) match {
-      case XML => ResponderResult(SerializerRegistry.toXML(serviceResult), ContentType.XML, HttpStatus.NotImplemented)
-      case JSON => ResponderResult(SerializerRegistry.toJson(serviceResult), ContentType.JSON, HttpStatus.Ok)
-      case _ => ResponderResult("Not Implemented", ContentType.XML, HttpStatus.NotImplemented)
+
+    serviceResult match {
+      case redirect: RedirectResult =>
+        ResponderResult(SerializerRegistry.toJson(serviceResult), ContentType.JSON, HttpStatus.SeeOther)
+      case _ =>
+        acceptType.content.getOrElse(JSON) match {
+          case XML => ResponderResult(SerializerRegistry.toXML(serviceResult), ContentType.XML, HttpStatus.NotImplemented)
+          case JSON => ResponderResult(SerializerRegistry.toJson(serviceResult), ContentType.JSON, HttpStatus.Ok)
+          case _ => ResponderResult("Not Implemented", ContentType.XML, HttpStatus.NotImplemented)
+        }
     }
   }
 }

@@ -98,6 +98,11 @@ object ClassResolver {
     resolveClassWithReturn(name, "apply", returnType, paramType, resolvers).asInstanceOf[Option[Class[Resolver[_, P]]]]
   }
 
+
+  def resolveResolverClass(name: String): Option[Class[Resolver[_, _]]] = {
+    resolvers.find(_.getSimpleName == name)
+  }
+
   private def resolveClassWithReturn[T, R, P](className: String, methodName: String, returnType: Class[R],
                                               paramType: Class[P], set: Set[Class[T]]): Option[Class[T]] = {
     set.find(target => target.getSimpleName.matches(className) && target.getMethod(methodName, paramType).getReturnType.equals(returnType))

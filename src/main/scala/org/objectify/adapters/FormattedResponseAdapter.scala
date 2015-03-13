@@ -46,7 +46,7 @@ class FormattedResponseAdapter extends ObjectifyResponseAdapter[FormattedRespons
       case _ =>
         // load adapter by class
         val newEntity = objectifyResponse.entity.response.value
-        val newResponse = new ObjectifyResponse(objectifyResponse.contentType, objectifyResponse.status, newEntity)
+        val newResponse = new ObjectifyResponse(Map[String, String](), objectifyResponse.contentType, objectifyResponse.status, newEntity)
         ClassResolver.locateResponseAdapter(newResponse).serializeResponse(request, response, newResponse)
     }
   }

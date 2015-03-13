@@ -12,12 +12,13 @@ package org.objectify.executor
 import com.twitter.logging.Logger
 import org.objectify.ContentType.ContentType
 import org.objectify.HttpStatus.HttpStatus
+import org.objectify.HttpStatus.HttpStatus
 import org.objectify.adapters.ObjectifyRequestAdapter
 import org.objectify.exceptions.{ObjectifyException, ObjectifyExceptionWithCause}
 import org.objectify.policies.Policy
 import org.objectify.responders.{PolicyResponder, ResponderResult, ServiceResponder}
-import org.objectify.services.Service
-import org.objectify.{Action, Objectify}
+import org.objectify.services.{RedirectResult, Service}
+import org.objectify.{HttpStatus, Action, Objectify}
 
 import scala.reflect.ClassTag
 
@@ -49,7 +50,7 @@ class ObjectifyPipeline(objectify: Objectify) {
       responder.policy = Some(policyClass)
 
       // generate response
-      generateResponse(responder.apply(), responder.status, responder.contentType)
+      generateResponse(Map(), responder.apply(), responder.status, responder.contentType)
     }
     // else execute the service call
     else {
@@ -83,12 +84,13 @@ class ObjectifyPipeline(objectify: Objectify) {
       objectify.postServiceHook(serviceResult, responder)
 
       // execute responder and extract status
-      val (result, status, contentType) = responder.applyAny(serviceResult) match {
-        case responderResult: ResponderResult => (responderResult.value, responderResult.httpStatus, responder.contentType)
-        case a: Any => (a, responder.status, responder.contentType)
+      val (headers, result, status, contentType) = responder.applyAny(serviceResult) match {
+        case responderResult: ResponderResult => (Map[String, String](), responderResult.value, responderResult.httpStatus, responder.contentType)
+        case redirect: RedirectResult => (Map[String, String](), redirect, HttpStatus.SeeOther, responder.contentType)
+        case a: Any => (Map[String, String](), a, responder.status, responder.contentType)
       }
 
-      generateResponse(result, status, contentType)
+      generateResponse(headers, result, status, contentType)
     }
   }
 
@@ -114,9 +116,9 @@ class ObjectifyPipeline(objectify: Objectify) {
     result
   }
 
-  def generateResponse[T: ClassTag](content: T, status: HttpStatus, contentType: ContentType): ObjectifyResponse[T] = {
+  def generateResponse[T: ClassTag](headers: Map[String, String], content: T, status: HttpStatus, contentType: ContentType): ObjectifyResponse[T] = {
     try {
-      new ObjectifyResponse(contentType, status, content)
+      new ObjectifyResponse(headers, contentType, status, content)
     }
     catch {
       case e: ObjectifyException => {

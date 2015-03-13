@@ -4,7 +4,7 @@ package org.objectify.services
  *
  * @author Joe Gaudet - (joe@learndot.com)
  */
-case class Redirect(to: String, params: Map[String, String] = Map()) {
+case class RedirectResult(to: String, params: Map[String, String] = Map()) {
 
   def url = {
     val queryString = params.map(entry => {
