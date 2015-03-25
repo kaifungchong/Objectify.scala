@@ -66,8 +66,7 @@ trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploa
       val route = "/" + action.route.getOrElse(throw ConfigurationException("No Route Found"))
       scalatraFunction(route) {
         // wrap HttpServletRequest in adapter and get ObjectifyResponse
-        val objectifyResponse = execute(action,
-          new ScalatraRequestAdapter(RichRequest(request), RichResponse(response), params.toMap, Some(fileParams)))
+        val objectifyResponse = execute(action, new ScalatraRequestAdapter(RichRequest(request), RichResponse(response), params.toMap, Some(fileParams)))
 
         // find appropriate response adapter and serialize the response
         ClassResolver.locateResponseAdapter(objectifyResponse).serializeResponseAny(request, response, objectifyResponse)
@@ -76,16 +75,14 @@ trait ObjectifyScalatraAdapter extends Objectify with ServletBase with FileUploa
   }
 
   error {
-    case e: ObjectifyException => {
+    case e: ObjectifyException =>
       status = e.status
       e.printStackTrace()
       e.getMessage
-    }
-    case e: ObjectifyExceptionWithCause => {
+    case e: ObjectifyExceptionWithCause =>
       status = e.status
       e.printStackTrace()
       e.getMessage
-    }
   }
 }
 

@@ -18,7 +18,10 @@ import org.objectify.executor.ObjectifyResponse
  * Response adapters are an easy way to allow for serializing any type you desire
  */
 trait ObjectifyResponseAdapter[T] {
-  def serializeResponseAny(request: HttpServletRequest, response: HttpServletResponse, objectifyResponse: ObjectifyResponse[_]) {
+
+  def serializeResponseAny(request: HttpServletRequest,
+                           response: HttpServletResponse,
+                           objectifyResponse: ObjectifyResponse[_]) {
 
     val castResponse = if (objectifyResponse != null && objectifyResponse.isInstanceOf[T]) {
       objectifyResponse.asInstanceOf[ObjectifyResponse[T]]
@@ -26,6 +29,11 @@ trait ObjectifyResponseAdapter[T] {
     else {
       throw new ConfigurationException("The response and response adapter provided are not compatible.")
     }
+
+    // copy any headers across
+    objectifyResponse.headers.foreach({
+      case (key, value) => response.setHeader(key, value)
+    })
 
     serializeResponse(request, response, castResponse)
   }

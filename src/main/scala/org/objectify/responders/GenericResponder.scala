@@ -16,7 +16,7 @@ class GenericResponder(acceptType: AcceptType) extends ServiceResponder[Responde
 
     serviceResult match {
       case redirect: RedirectResult =>
-        ResponderResult(SerializerRegistry.toJson(serviceResult), ContentType.JSON, HttpStatus.SeeOther)
+        ResponderResult(SerializerRegistry.toJson(redirect), ContentType.JSON, HttpStatus.SeeOther, Map("Location" -> redirect.to))
       case _ =>
         acceptType.content.getOrElse(JSON) match {
           case XML => ResponderResult(SerializerRegistry.toXML(serviceResult), ContentType.XML, HttpStatus.NotImplemented)

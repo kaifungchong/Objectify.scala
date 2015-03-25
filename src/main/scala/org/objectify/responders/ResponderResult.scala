@@ -10,4 +10,5 @@ import org.objectify.HttpStatus.HttpStatus
  */
 case class ResponderResult(value: String,
                            contentType: ContentType,
-                           httpStatus: HttpStatus)
+                           httpStatus: HttpStatus,
+                           headers: Map[String, String] = Map.empty)

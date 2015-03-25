@@ -112,9 +112,31 @@ class InjectorTest extends WordSpec with BeforeAndAfterEach with MockitoSugar wi
       val resolvedParam = Injector.getInjectedResolverParams(manifest[TestPolicyWithGenericCourseId].runtimeClass.getConstructors.head, idResolverParamMock)
       resolvedParam should equal(List(idResolverActual))
     }
+
+    "resolve an object with only a null constructor (no dependencies) for injection" in {
+      val requestMock = mock[ObjectifyRequestAdapter]
+      val resolvedParams = Injector.getInjectedResolverParams(manifest[TestPolicyWithNullConstructor].runtimeClass.getConstructors.head, requestMock)
+
+      resolvedParams.head should equal(new Foo)
+    }
   }
 }
 
+
+class Foo {
+
+  /**
+   * All foos are created equal
+   */
+  override def equals(any: Any): Boolean = {
+    any match {
+      case anFoo: Foo => true
+      case _ => false
+    }
+  }
+
+
+}
 
 private class UnityPolicy extends Policy {
   override def isAllowed = true
@@ -153,3 +175,5 @@ private class TestPolicyWithGenericCourseId(@Named("courseId") courseId: Int) ex
 private class TestPolicyWithGenericIds(@Named("Ids") id: List[Int]) extends UnityPolicy
 
 private class TestPolicyWithGenericCourseIds(@Named("courseIds") id: List[Int]) extends UnityPolicy
+
+private class TestPolicyWithNullConstructor(foo: Foo) extends UnityPolicy

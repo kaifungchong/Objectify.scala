@@ -13,4 +13,5 @@ case class RedirectResult(to: String, params: Map[String, String] = Map()) {
     }).mkString("&")
     if (queryString.isEmpty) to else s"$to?$queryString"
   }
+
 }

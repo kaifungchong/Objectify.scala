@@ -84,33 +84,41 @@ private[executor] object Injector {
       case Some(annotation: Named) => (s"${annotation.value()}Resolver", Some(annotation.value()))
       case _ => (specifyName(paramType, genericTypesOption), None)
     }
-
     val resolverOption = ClassResolver.resolveResolverClass(resolverName, paramType, returnType)
 
     val resolvedValue = (resolverOption, paramName) match {
 
       // if we found a resolver lets kick it off
-      case (Some(resolver), _) => {
-        logger.debug(s"${prefix}Running Resolver: ${resolver.getSimpleName}")
+      case (Some(resolver), _) =>
+        logger.trace(s"${prefix}Running Resolver: ${resolver.getSimpleName}")
         Option(Invoker.invoke(resolver, resolverParam, prefix = prefix + "\t").apply(resolverParam))
-      }
 
       // if now maybe we have a generic resolver
-      case (None, Some(argumentName)) => {
+      case (None, Some(argumentName)) =>
         MatchingResolvers.resolverForName(argumentName) match {
-          case Some(resolverClass) => {
-            logger.info(s"${prefix}Running Resolver: ${resolverClass.getSimpleName}")
+          case Some(resolverClass) =>
+            logger.trace(s"${prefix}Running Resolver: ${resolverClass.getSimpleName}")
             val resolver = resolverClass.getConstructor(classOf[String]).newInstance(argumentName).asInstanceOf[MatchingResolver[P]]
             Option(resolver(resolverParam.asInstanceOf[ObjectifyRequestAdapter]))
-          }
+
           case None => None
         }
-      }
-      case _ => throw ConfigurationException("Unable to determine a resolver for this particular value.")
+
+      case _ =>
+        val constructors = paramType.getConstructors
+
+        // if the class has exactly one constructor with no arguments then we can resolve
+        // it by simply instantiating it.
+        if (constructors.length == 1 && constructors.head.getParameterTypes.length == 0) {
+          Some(paramType.newInstance())
+        }
+        else {
+          throw ConfigurationException(s"Unable to determine a resolver for this particular value. [${paramType.getSimpleName}]")
+        }
     }
 
-    logger.debug(s"$prefix  Yielding: $resolvedValue")
-    resolvedValue.getOrElse(throw ConfigurationException("Unable to resolve value"))
+    //    logger.trace(s"$prefix  Yielding: $resolvedValue")
+    resolvedValue.getOrElse(throw ConfigurationException(s"Unable to resolve value of type [${paramType.getSimpleName}]"))
   }
 
   private def specifyName(clazz: Class[_]) = {
@@ -120,7 +128,7 @@ private[executor] object Injector {
   private def specifyName(rawType: Class[_], genTypes: Option[Seq[Class[_]]] = None) = {
     val sb = new StringBuilder
     sb append rawType.getSimpleName
-    genTypes.map(_.foreach(sb append _.getSimpleName))
+    genTypes.foreach(_.foreach(sb append _.getSimpleName))
     sb append "Resolver"
     sb.mkString
   }

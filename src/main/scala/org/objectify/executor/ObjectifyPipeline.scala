@@ -50,7 +50,7 @@ class ObjectifyPipeline(objectify: Objectify) {
       responder.policy = Some(policyClass)
 
       // generate response
-      generateResponse(Map(), responder.apply(), responder.status, responder.contentType)
+      generateResponse(responder.apply(), responder.status, responder.contentType)
     }
     // else execute the service call
     else {
@@ -68,29 +68,29 @@ class ObjectifyPipeline(objectify: Objectify) {
       //        logger.info(param.name.toString)
       //      })
 
-      logger.debug("Instantiating Service Class")
+      logger.trace("Instantiating Service Class")
       val service = instantiate[Service[_]](serviceClass, req)
-      logger.debug("Done")
+      logger.trace("Done")
 
       val responder = instantiate[ServiceResponder[_, _]](action.resolveResponderClass, req)
 
-      logger.debug(s"Executing service $serviceClass")
+      logger.trace(s"Executing service $serviceClass")
       // get the service result
       val serviceResult = service()
 
-      logger.debug(s"Result $serviceResult")
+      logger.trace(s"Result $serviceResult")
 
       // execute post service (pre-responder hook)
       objectify.postServiceHook(serviceResult, responder)
 
       // execute responder and extract status
+      // TODO: make the headers story stronger
       val (headers, result, status, contentType) = responder.applyAny(serviceResult) match {
-        case responderResult: ResponderResult => (Map[String, String](), responderResult.value, responderResult.httpStatus, responder.contentType)
-        case redirect: RedirectResult => (Map[String, String](), redirect, HttpStatus.SeeOther, responder.contentType)
+        case responderResult: ResponderResult => (responder.headers ++ responderResult.headers, responderResult.value, responderResult.httpStatus, responder.contentType)
         case a: Any => (Map[String, String](), a, responder.status, responder.contentType)
       }
 
-      generateResponse(headers, result, status, contentType)
+      generateResponse(result, status, contentType, headers)
     }
   }
 
@@ -109,30 +109,27 @@ class ObjectifyPipeline(objectify: Objectify) {
   }
 
   private def instantiate[T: ClassTag](klass: Class[_ <: T], req: ObjectifyRequestAdapter): T = {
-    logger.debug("Instantiating Class: " + klass.getSimpleName)
+    logger.trace(s"Instantiating Class: ${klass.getSimpleName}")
     val result = Invoker.invoke(klass, req)
-    logger.debug("Finished Instantiating Class: " + result)
+    logger.trace("Finished Instantiating Class: " + result)
 
     result
   }
 
-  def generateResponse[T: ClassTag](headers: Map[String, String], content: T, status: HttpStatus, contentType: ContentType): ObjectifyResponse[T] = {
+  def generateResponse[T: ClassTag](content: T, status: HttpStatus, contentType: ContentType, headers: Map[String, String] = Map.empty): ObjectifyResponse[T] = {
     try {
-      new ObjectifyResponse(headers, contentType, status, content)
+      new ObjectifyResponse(contentType, status, content, headers)
     }
     catch {
-      case e: ObjectifyException => {
+      case e: ObjectifyException =>
         e.printStackTrace()
         throw e
-      }
-      case e: ObjectifyExceptionWithCause => {
+      case e: ObjectifyExceptionWithCause =>
         e.printStackTrace()
         throw e
-      }
-      case e: Throwable => {
+      case e: Throwable =>
         e.printStackTrace()
         throw new ObjectifyExceptionWithCause(500, "Unexpected Exception", e)
-      }
     }
   }
 }
