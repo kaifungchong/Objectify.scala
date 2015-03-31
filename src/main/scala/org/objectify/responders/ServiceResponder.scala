@@ -20,6 +20,13 @@ import org.objectify.exceptions.ConfigurationException
  * that it can be returned to the web framework.
  */
 abstract class ServiceResponder[T, P: Manifest] {
+
+  /**
+   * allow for header overrides
+   * @return map of headers and values.
+   */
+  def headers: Map[String, String] = Map.empty
+
   var status: HttpStatus = Ok
   var contentType: ContentType = JSON
 
@@ -41,7 +48,7 @@ abstract class ServiceResponder[T, P: Manifest] {
   private def castClass: Class[P] = manifest[P].runtimeClass.asInstanceOf[Class[P]]
 
   // convenience function for wrapping entity responses
-  implicit def entity2Formatted(er: EntityResponse[_]) = new FormattedResponse(er)
+  implicit def entity2Formatted(er: EntityResponse[_]): FormattedResponse = new FormattedResponse(er)
 
   def apply(serviceResult: P): T
 }

@@ -17,6 +17,6 @@ import scala.reflect.ClassTag
 /**
  * This is a wrapper for a response
  */
-class ObjectifyResponse[T: ClassTag](val contentType: ContentType, val status: HttpStatus, val entity: T)
+class ObjectifyResponse[T: ClassTag](val contentType: ContentType, val status: HttpStatus, val entity: T, val headers: Map[String, String] = Map.empty)
 
 

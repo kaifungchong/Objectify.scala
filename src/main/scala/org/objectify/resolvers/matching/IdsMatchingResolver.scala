@@ -30,7 +30,7 @@ case class IdsOptionMatchingResolver(named: String) extends MatchingResolver[Opt
   override def apply(param: ObjectifyRequestAdapter): Option[List[Int]] = {
     // Id => id, CourseId => courseId
     val camelizedNamed = Inflector.uncapitalize(named.replace("Option", ""))
-    val idsList: Option[List[String]] = param.getQueryParameters.get(camelizedNamed) match {
+    val idsListOption: Option[List[String]] = param.getQueryParameters.get(camelizedNamed) match {
       case Some(list) => Some(list)
       case None => {
 
@@ -46,10 +46,16 @@ case class IdsOptionMatchingResolver(named: String) extends MatchingResolver[Opt
     }
 
     try {
-      idsList.map(_.map(_.toInt))
+      idsListOption match {
+        case Some(idsList) =>
+          // remove empty entries and map to integerse
+          Some(idsList.filter(_ != "").map(_.toInt))
+        case None => None
+      }
     }
     catch {
-      case nfe: NumberFormatException => throw BadRequestException(s"$named was not a list of integers as expected")
+      case nfe: NumberFormatException =>
+        throw BadRequestException(s"$named was not a list of integers as expected")
     }
   }
 }

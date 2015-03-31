@@ -20,7 +20,13 @@ import org.objectify.responders.ResponderResult
  * Response adapter for String
  */
 class FormattedResponseAdapter extends ObjectifyResponseAdapter[FormattedResponse] {
+
+
   def serializeResponse(request: HttpServletRequest, response: HttpServletResponse, objectifyResponse: ObjectifyResponse[FormattedResponse]) {
+    // copy any headers across
+    objectifyResponse.headers.foreach({
+      case (key, value) => response.setHeader(key, value)
+    })
 
     objectifyResponse.entity.response match {
       case r: JsonResponse =>
@@ -46,7 +52,7 @@ class FormattedResponseAdapter extends ObjectifyResponseAdapter[FormattedRespons
       case _ =>
         // load adapter by class
         val newEntity = objectifyResponse.entity.response.value
-        val newResponse = new ObjectifyResponse(objectifyResponse.contentType, objectifyResponse.status, newEntity)
+        val newResponse = new ObjectifyResponse(objectifyResponse.contentType, objectifyResponse.status, newEntity, objectifyResponse.headers)
         ClassResolver.locateResponseAdapter(newResponse).serializeResponse(request, response, newResponse)
     }
   }

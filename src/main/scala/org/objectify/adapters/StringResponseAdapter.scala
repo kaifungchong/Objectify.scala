@@ -20,6 +20,10 @@ class StringResponseAdapter extends ObjectifyResponseAdapter[String] {
   def serializeResponse(request: HttpServletRequest, response: HttpServletResponse,
                         objectifyResponse: ObjectifyResponse[String]) {
 
+    objectifyResponse.headers.foreach({
+      case (key, value) => response.setHeader(key, value)
+    })
+
     response.setContentType(objectifyResponse.contentType.toString)
     response.setStatus(objectifyResponse.status.id)
     response.getWriter.print(objectifyResponse.entity)

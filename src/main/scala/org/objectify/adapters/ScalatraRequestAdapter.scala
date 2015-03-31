@@ -17,7 +17,7 @@ import org.scalatra.servlet.{RichRequest, RichResponse}
 /**
  * Scalatrafied Request!
  */
-class ScalatraRequestAdapter(request: RichRequest,
+case class ScalatraRequestAdapter(request: RichRequest,
                              response: RichResponse,
                              pathParameters: Map[String, String],
                              fileParams: Option[collection.Map[String, FileItem]] = None)
