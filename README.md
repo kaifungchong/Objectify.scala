@@ -1,5 +1,7 @@
 # Objectify for Scala
 
+[![Join the chat at https://gitter.im/learndot/Objectify.scala](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/learndot/Objectify.scala?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 #### Objectify is a light-weight web framework that helps you structure your application by providing policy management and dependency injection.
 
 Here's a quick introduction I gave at a Scala meetup for an idea of what it's all about: [Scala Meetup - Objectify](http://www.slideshare.net/artgon/scala-meetup-objectify-15072182)
